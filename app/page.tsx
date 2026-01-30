@@ -1,65 +1,133 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { useAuth } from "./context/AuthContext";
+import { AuthPage } from "./components/AuthPage";
+import { HomePage } from "./components/HomePage";
+import { Interview } from "./components/Interview";
+import { JobRole } from "@/types/jobRoles";
+import { LogOut, Home as HomeIcon } from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+  const { user, isAuthenticated, logout } = useAuth();
+  const [selectedRole, setSelectedRole] = useState<JobRole | null>(null);
+  const VAPI_API_KEY = process.env.NEXT_PUBLIC_VAPI_API_KEY || "859a4847-534c-4116-9896-471f327b1285";
+
+  // Show auth page if not logged in
+  if (!isAuthenticated) {
+    return <AuthPage />;
+  }
+
+  const handleStartInterview = (role: JobRole) => {
+    setSelectedRole(role);
+  };
+
+  const handleBackToHome = () => {
+    setSelectedRole(null);
+  };
+
+  // Show interview page if role is selected
+  if (selectedRole) {
+    return (
+      <main className="relative min-h-screen overflow-hidden bg-midnight">
+        {/* Animated gradient background */}
+        <div
+          className="absolute inset-0 animate-gradient-shift bg-gradient-to-br from-accent-purple/10 via-midnight to-accent-blue/10"
+          style={{ backgroundSize: "200% 200%" }}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+
+        {/* Radial gradient overlays for depth */}
+        <div className="absolute left-1/4 top-0 h-96 w-96 rounded-full bg-accent-purple/20 blur-3xl" />
+        <div className="absolute right-1/4 bottom-0 h-96 w-96 rounded-full bg-accent-blue/20 blur-3xl" />
+
+        {/* Header with User Profile and Back Button */}
+        <div className="absolute left-6 right-6 top-6 z-20 flex items-center justify-between">
+          {/* Logo and Back Button */}
+          <button
+            onClick={handleBackToHome}
+            className="flex items-center gap-2 rounded-full border border-white/10 bg-midnight-lighter/80 px-4 py-2 backdrop-blur-sm transition-colors hover:border-white/30"
+          >
+            <HomeIcon className="h-4 w-4 text-white/70" />
+            <span className="text-sm text-white/70">Back to Home</span>
+          </button>
+
+          {/* User Profile */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 rounded-full border border-white/10 bg-midnight-lighter/80 px-4 py-2 backdrop-blur-sm">
+              <img
+                src={user?.avatar}
+                alt={user?.name}
+                className="h-8 w-8 rounded-full"
+              />
+              <div className="text-left">
+                <p className="text-sm font-medium text-white">{user?.name}</p>
+                <p className="text-xs text-white/50">{selectedRole.title}</p>
+              </div>
+            </div>
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 rounded-full border border-white/10 bg-midnight-lighter/80 px-4 py-2 backdrop-blur-sm transition-colors hover:border-red-500/30 hover:bg-red-500/10"
+              title="Logout"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <LogOut className="h-4 w-4 text-white/70" />
+            </button>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Main content */}
+        <div className="relative z-10">
+          <Interview vapiApiKey={VAPI_API_KEY} jobRole={selectedRole} />
         </div>
       </main>
-    </div>
+    );
+  }
+
+  // Show home page after login
+  return (
+    <main className="relative min-h-screen overflow-hidden bg-midnight">
+      {/* Animated gradient background */}
+      <div
+        className="absolute inset-0 animate-gradient-shift bg-gradient-to-br from-accent-purple/10 via-midnight to-accent-blue/10"
+        style={{ backgroundSize: "200% 200%" }}
+      />
+
+      {/* Header with Logo and User Profile */}
+      <div className="absolute left-6 right-6 top-6 z-20 flex items-center justify-between">
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-black">
+            IntervU
+          </h1>
+        </div>
+
+        {/* User Profile */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 rounded-full border border-white/10 bg-midnight-lighter/80 px-4 py-2 backdrop-blur-sm">
+            <img
+              src={user?.avatar}
+              alt={user?.name}
+              className="h-8 w-8 rounded-full"
+            />
+            <div className="text-left">
+              <p className="text-sm font-medium text-white">{user?.name}</p>
+              <p className="text-xs text-white/50">{user?.email}</p>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            className="flex items-center gap-2 rounded-full border border-white/10 bg-midnight-lighter/80 px-4 py-2 backdrop-blur-sm transition-colors hover:border-red-500/30 hover:bg-red-500/10"
+            title="Logout"
+          >
+            <LogOut className="h-4 w-4 text-white/70" />
+            <span className="text-sm text-white/70">Logout</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10">
+        <HomePage onStartInterview={handleStartInterview} userName={user?.name || "User"} />
+      </div>
+    </main>
   );
 }
