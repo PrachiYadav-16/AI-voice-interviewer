@@ -123,3 +123,26 @@ describe("document parsing", () => {
     await expect(extractDocumentText("big.txt", new ArrayBuffer(6 * 1024 * 1024))).rejects.toThrow(/5 MB/);
   });
 });
+
+describe("password reset", () => {
+  beforeEach(() => store.clear());
+
+  it("resets with matching email and name, keeps the account, and logs in", async () => {
+    const created = await auth.signup({ name: "Prachi Yadav", email: "p@x.io", password: "oldpassword" });
+    auth.logout();
+    const wrong = await auth.resetPassword({ email: "p@x.io", name: "Someone Else", password: "newpassword", confirm: "newpassword" });
+    expect(wrong.ok).toBe(false);
+    const res = await auth.resetPassword({ email: "P@X.IO", name: "  prachi   yadav ", password: "newpassword", confirm: "newpassword" });
+    expect(res.ok && res.user.id).toBe(created.ok && created.user.id);
+    expect(auth.currentUser()?.email).toBe("p@x.io");
+    auth.logout();
+    expect((await auth.login("p@x.io", "oldpassword")).ok).toBe(false);
+    expect((await auth.login("p@x.io", "newpassword")).ok).toBe(true);
+  });
+
+  it("validates the new password", async () => {
+    await auth.signup({ name: "A B", email: "a@b.co", password: "12345678" });
+    expect((await auth.resetPassword({ email: "a@b.co", name: "A B", password: "short", confirm: "short" })).ok).toBe(false);
+    expect((await auth.resetPassword({ email: "a@b.co", name: "A B", password: "12345678x", confirm: "different" })).ok).toBe(false);
+  });
+});

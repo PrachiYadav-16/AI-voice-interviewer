@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { login, signup, validateSignup } from "@/lib/auth";
+import { login, resetPassword, signup, validateSignup } from "@/lib/auth";
 import { useAuth } from "./AuthProvider";
 import { Logo } from "./Headers";
 import { AvatarPicker, DEFAULT_AVATARS } from "./AvatarPicker";
@@ -81,6 +81,11 @@ export function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+        <p className="-mt-2 text-right text-sm">
+          <Link href="/forgot-password" className="font-bold text-indigo underline">
+            Forgot password?
+          </Link>
+        </p>
         <Button type="submit" loading={busy} className="w-full">
           Log in
         </Button>
@@ -148,6 +153,53 @@ export function SignupForm() {
       </form>
       <p className="text-muted">
         Already have an account?{" "}
+        <Link href="/login" className="font-bold text-indigo underline">
+          Log in
+        </Link>
+      </p>
+    </AuthShell>
+  );
+}
+
+export function ForgotPasswordForm() {
+  const router = useRouter();
+  const [form, setForm] = useState({ email: "", name: "", password: "", confirm: "" });
+  const [error, setError] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(undefined);
+    if (!form.email.trim() || !form.name.trim()) return setError("Enter the email and name you signed up with.");
+    setBusy(true);
+    const res = await resetPassword(form);
+    setBusy(false);
+    if (!res.ok) return setError(res.error);
+    router.replace("/dashboard");
+  };
+
+  return (
+    <AuthShell
+      title="Reset your password"
+      subtitle="Your account is stored in this browser, so there's no reset email. Confirm the email and name you signed up with, then choose a new password. Your interview history is kept."
+    >
+      <form onSubmit={submit} className="space-y-4" noValidate>
+        {error && (
+          <Notice tone="error" role="alert">
+            {error}
+          </Notice>
+        )}
+        <TextField label="Email" type="email" autoComplete="email" value={form.email} onChange={set("email")} required />
+        <TextField label="Name on the account" autoComplete="name" value={form.name} onChange={set("name")} required />
+        <TextField label="New password" type="password" autoComplete="new-password" hint="At least 8 characters." value={form.password} onChange={set("password")} required />
+        <TextField label="Confirm new password" type="password" autoComplete="new-password" value={form.confirm} onChange={set("confirm")} required />
+        <Button type="submit" loading={busy} className="w-full">
+          Reset password and log in
+        </Button>
+      </form>
+      <p className="text-muted">
+        Remembered it?{" "}
         <Link href="/login" className="font-bold text-indigo underline">
           Log in
         </Link>

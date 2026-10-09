@@ -92,6 +92,31 @@ export async function login(emailInput: string, password: string): Promise<AuthR
   return { ok: true, user: toPublic(user) };
 }
 
+/**
+ * There's no server or email, so recovery checks the account's email and name.
+ * Device accounts only separate profiles on a shared browser (anyone with access to
+ * the browser can already read local storage), so this keeps history without
+ * weakening real security.
+ */
+export async function resetPassword(input: { email: string; name: string; password: string; confirm: string }): Promise<AuthResult> {
+  await migrateLegacy();
+  if (input.password.length < 8) return { ok: false, error: "Use a password of at least 8 characters." };
+  if (input.password !== input.confirm) return { ok: false, error: "The two passwords don't match." };
+  const users = read<StoredUser[]>(KEYS.users, []);
+  const norm = (s: string) => s.trim().replace(/\s+/g, " ").toLowerCase();
+  const user = users.find((u) => u.email === normaliseEmail(input.email) && norm(u.name) === norm(input.name));
+  if (!user) {
+    return { ok: false, error: "No account on this device matches that email and name. Check the spelling of the name you signed up with." };
+  }
+  const { hash, salt } = await hashPassword(input.password);
+  write(
+    KEYS.users,
+    users.map((u) => (u.id === user.id ? { ...u, passwordHash: hash, salt } : u)),
+  );
+  write(KEYS.current, { userId: user.id });
+  return { ok: true, user: toPublic(user) };
+}
+
 let signedOutOnPurpose = false;
 
 export function logout(): void {
