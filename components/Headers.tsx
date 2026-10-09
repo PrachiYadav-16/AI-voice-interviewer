@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { LogOut, Menu, X } from "lucide-react";
 import { logout } from "@/lib/auth";
 import { useAuth } from "./AuthProvider";
-import { ButtonLink } from "./ui";
+import { Avatar, ButtonLink } from "./ui";
 import { cn } from "@/lib/utils";
 
 export function Logo({ className }: { className?: string }) {
@@ -33,13 +33,10 @@ const APP_NAV = [
 export function AppHeader() {
   const { user } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
 
-  const signOut = () => {
-    logout();
-    router.push("/");
-  };
+  // RequireAuth sends the page home once the profile is cleared.
+  const signOut = () => logout();
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-paper/95 backdrop-blur-sm">
@@ -63,8 +60,7 @@ export function AppHeader() {
         <div className="hidden items-center gap-3 md:flex">
           {user && (
             <span className="flex items-center gap-2 text-sm text-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element -- avatars are user data URLs or SVGs */}
-              {user.avatar && <img src={user.avatar} alt="" className="h-8 w-8 rounded-full border border-line bg-surface object-cover" />}
+              <Avatar src={user.avatar} name={user.name} className="h-8 w-8" />
               {user.name}
             </span>
           )}

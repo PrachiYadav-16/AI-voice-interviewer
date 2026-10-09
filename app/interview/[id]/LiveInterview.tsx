@@ -229,6 +229,13 @@ export function LiveInterview({ userId, sessionId }: { userId: string; sessionId
             {state.partial.candidate && <p className="max-w-xl text-muted italic">{state.partial.candidate}</p>}
           </div>
 
+          {live.audioBlocked && isLive && (
+            <Notice tone="warning" title="Your browser blocked the interviewer's voice" className="mb-4" role="alert">
+              <Button size="sm" className="mt-2" onClick={live.enableAudio}>
+                Turn on sound
+              </Button>
+            </Notice>
+          )}
           {state.phase === "paused" && (
             <Notice tone="info" title="Interview paused" className="mb-4">
               Your microphone is off and the interviewer is waiting. Resume when you&apos;re ready.

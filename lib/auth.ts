@@ -92,8 +92,18 @@ export async function login(emailInput: string, password: string): Promise<AuthR
   return { ok: true, user: toPublic(user) };
 }
 
+let signedOutOnPurpose = false;
+
 export function logout(): void {
+  signedOutOnPurpose = true;
   remove(KEYS.current);
+}
+
+/** True once after an explicit sign-out, so protected pages send people home rather than to the login form. */
+export function consumeSignOut(): boolean {
+  const v = signedOutOnPurpose;
+  signedOutOnPurpose = false;
+  return v;
 }
 
 export function currentUser(): PublicUser | null {
@@ -117,6 +127,7 @@ export function deleteAccount(userId: string): void {
     KEYS.users,
     read<StoredUser[]>(KEYS.users, []).filter((u) => u.id !== userId),
   );
+  signedOutOnPurpose = true;
   remove(KEYS.current);
 }
 
@@ -130,6 +141,7 @@ interface LegacyUser {
   createdAt?: string;
 }
 
+/** In-flight migration, shared by concurrent callers and cleared once finished. */
 let migration: Promise<void> | null = null;
 
 /**
@@ -167,6 +179,8 @@ export function migrateLegacy(): Promise<void> {
     }
     remove(KEYS.legacyUsers);
     remove(KEYS.legacyCurrent);
-  })();
+  })().finally(() => {
+    migration = null;
+  });
   return migration;
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { RequireAuth } from "@/components/AuthProvider";
 import { AppShell } from "@/components/Headers";
@@ -20,7 +19,6 @@ export default function SettingsPage() {
 }
 
 function Settings({ user }: { user: PublicUser }) {
-  const router = useRouter();
   const profile = useProfile(user.id);
   const sessions = useSessions(user.id);
   const [name, setName] = useState(user.name);
@@ -167,7 +165,6 @@ function Settings({ user }: { user: PublicUser }) {
               onClick={() => {
                 if (confirm === "account") {
                   deleteAccount(user.id);
-                  router.replace("/");
                 } else {
                   remove(KEYS.sessions(user.id));
                   setSaved("All interviews deleted.");

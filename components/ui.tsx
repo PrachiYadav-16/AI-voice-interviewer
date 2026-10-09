@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { forwardRef, useEffect, useId, useRef } from "react";
+import { forwardRef, useEffect, useId, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -216,7 +216,7 @@ export function Notice({
   return (
     <div className={cn("flex gap-3 rounded-[var(--radius-control)] border px-4 py-3", s.box, className)} role={role}>
       <Icon className={cn("mt-0.5 h-5 w-5 shrink-0", s.iconClass)} aria-hidden />
-      <div className="space-y-1 text-[0.95rem]">
+      <div className="min-w-0 space-y-1 text-[0.95rem] [overflow-wrap:anywhere]">
         {title && <p className="font-bold">{title}</p>}
         {children && <div className="text-ink/85">{children}</div>}
       </div>
@@ -278,4 +278,19 @@ export function PageTitle({ title, description, actions }: { title: string; desc
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
+}
+
+/** Profile picture with an initial-letter fallback when the image can't load. */
+export function Avatar({ src, name, className }: { src?: string; name: string; className?: string }) {
+  const [failed, setFailed] = useState(false);
+  const initial = name.trim().charAt(0).toUpperCase() || "?";
+  if (!src || failed) {
+    return (
+      <span aria-hidden className={cn("grid place-items-center rounded-full bg-indigo-soft font-bold text-indigo", className)}>
+        {initial}
+      </span>
+    );
+  }
+  // eslint-disable-next-line @next/next/no-img-element -- user data URLs and remote SVG avatars
+  return <img src={src} alt="" onError={() => setFailed(true)} className={cn("rounded-full border border-line bg-surface object-cover", className)} />;
 }

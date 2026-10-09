@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { currentUser, migrateLegacy, type PublicUser } from "@/lib/auth";
+import { consumeSignOut, currentUser, migrateLegacy, type PublicUser } from "@/lib/auth";
 import { subscribe } from "@/lib/storage";
 
 interface AuthState {
@@ -38,9 +38,16 @@ export function RequireAuth({ children }: { children: (user: PublicUser) => Reac
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const target = useRef<string | null>(null);
 
   useEffect(() => {
-    if (user === null) router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+    if (user !== null) {
+      target.current = null;
+      return;
+    }
+    // Decide once: after an explicit sign-out go home, otherwise ask to log in and come back.
+    target.current ??= consumeSignOut() ? "/" : `/login?next=${encodeURIComponent(pathname)}`;
+    router.replace(target.current);
   }, [user, router, pathname]);
 
   if (!user) {

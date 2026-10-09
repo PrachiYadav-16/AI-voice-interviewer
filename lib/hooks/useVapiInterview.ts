@@ -12,6 +12,18 @@ import {
 } from "@/lib/interview/session";
 
 const CONNECT_TIMEOUT_MS = 25_000;
+
+/**
+ * Error types the SDK (v2.7) emits while the call carries on: audio level observer,
+ * noise-cancellation setup/recovery, video and camera. These must not end an interview.
+ */
+const NON_FATAL_ERRORS = new Set([
+  "audio-observer-setup-error",
+  "audio-processing-setup-error",
+  "audio-processor-recovery-error",
+  "video-recording-setup-error",
+  "camera-error",
+]);
 const STOP_FALLBACK_MS = 4_000;
 
 interface Options {
@@ -53,8 +65,12 @@ export function useVapiInterview({ publicKey }: Options) {
   const userMutedRef = useRef(false);
   const connectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Set when the SDK has already reported a specific error for the current attempt. */
+  const errorReported = useRef(false);
   const [interviewerLevel, setInterviewerLevel] = useState(0);
   const [micLevel, setMicLevel] = useState(0);
+  /** The browser blocked autoplay of the interviewer's voice; a tap is needed. */
+  const [audioBlocked, setAudioBlocked] = useState(false);
 
   const clearTimers = () => {
     if (connectTimer.current) clearTimeout(connectTimer.current);
@@ -84,6 +100,7 @@ export function useVapiInterview({ publicKey }: Options) {
     });
     v.on("call-start-failed", (e) => {
       clearTimers();
+      errorReported.current = true;
       dispatch({ type: "error", ...classifyError(e.error) });
     });
     v.on("call-end", () => {
@@ -93,6 +110,7 @@ export function useVapiInterview({ publicKey }: Options) {
       dispatch({ type: "call-ended", at: Date.now() });
     });
     v.on("volume-level", (level) => setInterviewerLevel(level));
+    v.on("audio", () => setAudioBlocked(false));
     v.on("local-volume-level", (level) => setMicLevel(level));
     v.on("message", (msg: unknown) => {
       if (!msg || typeof msg !== "object") return;
@@ -118,7 +136,14 @@ export function useVapiInterview({ publicKey }: Options) {
       }
     });
     v.on("error", (e) => {
+      const type = (e as { type?: unknown } | null)?.type;
+      if (typeof type === "string" && NON_FATAL_ERRORS.has(type)) return;
+      if (type === "audio-start-failed") {
+        setAudioBlocked(true);
+        return;
+      }
       clearTimers();
+      errorReported.current = true;
       dispatch({ type: "error", ...classifyError(e) });
       v.stop().catch(() => {});
     });
@@ -166,6 +191,7 @@ export function useVapiInterview({ publicKey }: Options) {
       const v = new VapiCtor(publicKey);
       vapiRef.current = v;
       userMutedRef.current = false;
+      errorReported.current = false;
       attach(v);
 
       connectTimer.current = setTimeout(() => {
@@ -175,14 +201,14 @@ export function useVapiInterview({ publicKey }: Options) {
 
       try {
         const call = await v.start(assistant);
-        if (!call && vapiRef.current === v) {
+        if (!call && vapiRef.current === v && !errorReported.current) {
           // start() resolves null when it fails; the error event usually explains why.
           clearTimers();
           dispatch({ type: "error", kind: "connect", message: "The voice session could not be started. Try again in a moment." });
         }
       } catch (err) {
         clearTimers();
-        dispatch({ type: "error", ...classifyError(err) });
+        if (!errorReported.current) dispatch({ type: "error", ...classifyError(err) });
       }
     },
     [attach, publicKey],
@@ -231,10 +257,19 @@ export function useVapiInterview({ publicKey }: Options) {
     }, STOP_FALLBACK_MS);
   }, []);
 
+  const enableAudio = useCallback(async () => {
+    try {
+      await vapiRef.current?.getAudioPlayer()?.play();
+      setAudioBlocked(false);
+    } catch {
+      /* still blocked; the prompt stays visible */
+    }
+  }, []);
+
   const reset = useCallback(() => {
     clearTimers();
     dispatch({ type: "reset" });
   }, []);
 
-  return { state, interviewerLevel, micLevel, start, setMuted, pause, resume, skip, repeat, wrapUp, end, reset };
+  return { state, interviewerLevel, micLevel, audioBlocked, enableAudio, start, setMuted, pause, resume, skip, repeat, wrapUp, end, reset };
 }
