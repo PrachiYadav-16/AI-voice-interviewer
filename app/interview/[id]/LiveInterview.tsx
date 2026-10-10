@@ -103,7 +103,7 @@ export function LiveInterview({ userId, sessionId }: { userId: string; sessionId
   if (!session) {
     return (
       <Centered>
-        <h1 className="text-2xl font-bold">This interview doesn&apos;t exist on this device</h1>
+        <h1 className="text-2xl">This interview doesn&apos;t exist on this device</h1>
         <p className="text-muted">It may have been deleted, or it was started in a different browser.</p>
         <ButtonLink href="/practice">Set up a new interview</ButtonLink>
       </Centered>
@@ -113,7 +113,7 @@ export function LiveInterview({ userId, sessionId }: { userId: string; sessionId
   if (session.status !== "in-progress" && state.phase === "idle") {
     return (
       <Centered>
-        <h1 className="text-2xl font-bold">This interview has already finished</h1>
+        <h1 className="text-2xl">This interview has already finished</h1>
         <div className="flex gap-2">
           <ButtonLink href={`/report/${session.id}`}>See the report</ButtonLink>
           <ButtonLink href="/practice?repeat=1" variant="secondary">
@@ -138,7 +138,7 @@ export function LiveInterview({ userId, sessionId }: { userId: string; sessionId
           <div className="space-y-5">
             <div>
               <p className="font-bold text-indigo">{FORMATS[config.format].title}</p>
-              <h1 className="text-3xl font-bold sm:text-4xl">{config.roleTitle}</h1>
+              <h1 className="text-3xl sm:text-4xl">{config.roleTitle}</h1>
               <p className="mt-1 text-muted">
                 About {estimatedMinutes(config.questionCount)} minutes · {config.questionCount} main questions
                 {config.organization ? ` · ${config.organization}` : ""}
@@ -314,7 +314,7 @@ export function LiveInterview({ userId, sessionId }: { userId: string; sessionId
           )}
           aria-label="Live transcript"
         >
-          <h2 className="mb-4 text-lg font-bold">Transcript</h2>
+          <h2 className="mb-4 text-lg">Transcript</h2>
           <TranscriptList turns={state.turns} partial={state.partial} />
         </aside>
       </div>

@@ -45,12 +45,12 @@ export default function PrivacyPage() {
     <>
       <SiteHeader />
       <main id="main" className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-        <h1 className="mb-3 text-4xl font-bold">Privacy</h1>
+        <h1 className="mb-3 text-4xl">Privacy</h1>
         <p className="mb-10 text-lg text-muted">How IntervU handles your voice, transcripts and documents.</p>
         <div className="space-y-10">
           {SECTIONS.map((s) => (
             <section key={s.h} className="space-y-3">
-              <h2 className="text-2xl font-bold">{s.h}</h2>
+              <h2 className="text-2xl">{s.h}</h2>
               {s.p.map((p) => (
                 <p key={p} className="leading-relaxed">
                   {p}

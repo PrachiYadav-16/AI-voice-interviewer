@@ -5,28 +5,34 @@
  * config file, so every custom colour and font is declared here.
  */
 @theme {
-  --color-paper: #f3f5f8;
+  --color-paper: #f6f7fb;
   --color-surface: #ffffff;
-  --color-ink: #172033;
-  --color-muted: #555f72;
-  --color-line: #dbe0e8;
-  --color-line-strong: #b9c1ce;
-  --color-indigo: #3442a8;
-  --color-indigo-deep: #26317f;
-  --color-indigo-soft: #e8eaf8;
+  --color-ink: #121a2f;
+  --color-muted: #5a6478;
+  --color-line: #e3e7ef;
+  --color-line-strong: #c6cdd9;
+  --color-indigo: #3d4bd6;
+  --color-indigo-deep: #2c38b0;
+  --color-indigo-soft: #eceefd;
   /* Marigold is reserved for "live": listening, recording, the current turn. */
-  --color-marigold: #e39a0b;
-  --color-marigold-soft: #fdf1d8;
-  --color-sage: #2f7a57;
-  --color-sage-soft: #e3f1ea;
-  --color-brick: #b4382a;
-  --color-brick-soft: #f9e5e2;
+  --color-marigold: #f0a00c;
+  --color-marigold-soft: #fff4dc;
+  --color-sage: #1f7a54;
+  --color-sage-soft: #e2f4ec;
+  --color-brick: #c0392b;
+  --color-brick-soft: #fdecea;
 
-  --font-display: "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Atkinson Hyperlegible", "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", "Inter", "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
 
-  --radius-card: 14px;
-  --radius-control: 10px;
+  /* Inter reads heavy at 700 in small UI text; "bold" maps to semibold across the app. */
+  --font-weight-bold: 600;
+
+  --radius-card: 18px;
+  --radius-control: 12px;
+
+  --shadow-card: 0 1px 2px rgb(18 26 47 / 0.04), 0 2px 8px -2px rgb(18 26 47 / 0.06);
+  --shadow-raised: 0 1px 2px rgb(18 26 47 / 0.05), 0 18px 40px -18px rgb(30 40 120 / 0.28);
 }
 
 @layer base {
@@ -37,14 +43,16 @@
     background: var(--color-paper);
     color: var(--color-ink);
     font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
     font-size: 1rem;
-    line-height: 1.55;
+    line-height: 1.6;
   }
   h1,
   h2,
   h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.015em;
+    font-weight: 750;
+    letter-spacing: -0.022em;
     line-height: 1.12;
     text-wrap: balance;
   }
@@ -52,9 +60,9 @@
     text-wrap: pretty;
   }
   :focus-visible {
-    outline: 3px solid var(--color-indigo);
+    outline: 3px solid color-mix(in srgb, var(--color-indigo) 70%, transparent);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 6px;
   }
   ::selection {
     background: var(--color-indigo-soft);
@@ -62,6 +70,15 @@
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+  }
+}
+
+@layer components {
+  /* Soft indigo wash used behind hero areas. */
+  .hero-wash {
+    background:
+      radial-gradient(60rem 28rem at 85% -10%, rgb(61 75 214 / 0.13), transparent 60%),
+      radial-gradient(40rem 22rem at -10% 10%, rgb(240 160 12 / 0.08), transparent 60%);
   }
 }
 

@@ -27,6 +27,7 @@ import { getProfile, newId, saveSession, StorageFullError, updateProfile } from 
 import { useServiceStatus } from "@/lib/hooks/useServiceStatus";
 import { Button, Card, ChoiceGroup, Notice, PageTitle, SelectField, TextArea, TextField } from "@/components/ui";
 import { DocumentInput } from "@/components/DocumentInput";
+import { CategoryIcon, TrackIcon } from "@/components/TrackIcon";
 import { cn } from "@/lib/utils";
 
 const QUESTION_COUNTS = [5, 8, 12] as const;
@@ -208,11 +209,19 @@ export function SetupFlow({ user }: { user: PublicUser }) {
               }}
               aria-pressed={category === c.id}
               className={cn(
-                "rounded-[var(--radius-card)] border bg-surface p-5 text-left transition-colors hover:border-ink",
+                "group flex flex-col rounded-[var(--radius-card)] border bg-surface p-6 text-left shadow-[var(--shadow-card)] transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-[var(--shadow-raised)]",
                 category === c.id ? "border-indigo shadow-[inset_0_0_0_1px_var(--color-indigo)]" : "border-line",
               )}
             >
-              <span className="block font-display text-xl font-bold">{c.title}</span>
+              <span
+                className={cn(
+                  "mb-4 grid h-12 w-12 place-items-center rounded-xl transition-colors",
+                  category === c.id ? "bg-indigo text-white" : "bg-indigo-soft text-indigo group-hover:bg-indigo group-hover:text-white",
+                )}
+              >
+                <CategoryIcon id={c.id} className="h-6 w-6" />
+              </span>
+              <span className="block font-display text-xl font-extrabold">{c.title}</span>
               <span className="mt-1 block text-muted">{c.description}</span>
             </button>
           ))}
@@ -220,7 +229,7 @@ export function SetupFlow({ user }: { user: PublicUser }) {
 
         {category && category !== "custom" && (
           <section className="mt-10" aria-labelledby="track-heading">
-            <h2 id="track-heading" className="mb-4 text-2xl font-bold">
+            <h2 id="track-heading" className="mb-5 text-2xl">
               {category === "government" ? "Which recruitment?" : "Which field?"}
             </h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -228,14 +237,19 @@ export function SetupFlow({ user }: { user: PublicUser }) {
                 <button
                   key={t.id}
                   onClick={() => chooseTrack(t)}
-                  className="flex flex-col rounded-[var(--radius-card)] border border-line bg-surface p-4 text-left transition-colors hover:border-ink"
+                  className="group flex flex-col rounded-[var(--radius-card)] border border-line bg-surface p-5 text-left shadow-[var(--shadow-card)] transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-indigo/40 hover:shadow-[var(--shadow-raised)]"
                 >
-                  <span className="font-bold">{t.title}</span>
-                  <span className="mt-1 text-sm text-muted">{t.description}</span>
+                  <span className="flex items-center gap-3">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-paper text-ink/70 transition-colors group-hover:bg-indigo-soft group-hover:text-indigo">
+                      <TrackIcon id={t.id} className="h-5 w-5" />
+                    </span>
+                    <span className="font-semibold">{t.title}</span>
+                  </span>
+                  <span className="mt-3 text-sm text-muted">{t.description}</span>
                   {t.interviewAvailability && (
                     <span
                       className={cn(
-                        "mt-3 self-start rounded-full px-2.5 py-0.5 text-xs font-bold",
+                        "mt-4 self-start rounded-full px-2.5 py-0.5 text-xs font-semibold",
                         t.interviewAvailability === "yes" && "bg-sage-soft text-sage",
                         t.interviewAvailability === "some-posts" && "bg-indigo-soft text-indigo",
                         t.interviewAvailability === "rare" && "bg-marigold-soft text-[#7a4f00]",
@@ -289,7 +303,7 @@ export function SetupFlow({ user }: { user: PublicUser }) {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-6">
           <Card>
-            <h2 className="mb-4 text-xl font-bold">The role</h2>
+            <h2 className="mb-4 text-xl">The role</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {isCustom || (track && track.roles.length === 1 && !track.roles[0].title) ? (
                 <TextField
@@ -329,7 +343,7 @@ export function SetupFlow({ user }: { user: PublicUser }) {
           </Card>
 
           <Card>
-            <h2 className="mb-4 text-xl font-bold">The interview</h2>
+            <h2 className="mb-4 text-xl">The interview</h2>
             <div className="space-y-6">
               <ChoiceGroup
                 legend="Format"
@@ -371,7 +385,7 @@ export function SetupFlow({ user }: { user: PublicUser }) {
           </Card>
 
           <Card>
-            <h2 className="mb-1 text-xl font-bold">Personalise (optional)</h2>
+            <h2 className="mb-1 text-xl">Personalise (optional)</h2>
             <p className="mb-5 text-muted">Questions follow your actual resume and the posting. Skip this for a role-based interview.</p>
             <div className="space-y-6">
               {profile.resumeText && (
@@ -466,7 +480,12 @@ export function SetupFlow({ user }: { user: PublicUser }) {
         {/* Summary + start */}
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <Card className="space-y-4">
-            <h2 className="text-xl font-bold">Ready when you are</h2>
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-lg bg-indigo-soft text-indigo">
+                <TrackIcon id={config.trackId} className="h-5 w-5" />
+              </span>
+              <h2 className="text-xl">Ready when you are</h2>
+            </div>
             <dl className="space-y-1.5 text-[0.95rem]">
               <div className="flex justify-between gap-3">
                 <dt className="text-muted">Role</dt>
@@ -534,7 +553,7 @@ export function SetupFlow({ user }: { user: PublicUser }) {
         <Card className="mt-6">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold">Your question plan</h2>
+              <h2 className="text-xl">Your question plan</h2>
               <p className="text-muted">{planState.plan.summary}</p>
             </div>
             <Button variant="ghost" size="sm" onClick={buildPlan}>
@@ -544,7 +563,7 @@ export function SetupFlow({ user }: { user: PublicUser }) {
           <ol className="space-y-3">
             {planState.plan.questions.map((q, i) => (
               <li key={i} className="grid grid-cols-[2rem_1fr] gap-2 border-t border-line pt-3">
-                <span className="font-display text-lg font-bold text-muted">{i + 1}</span>
+                <span className="font-display text-lg font-extrabold text-muted">{i + 1}</span>
                 <div>
                   <p className="font-bold">{q.question}</p>
                   <p className="text-sm text-muted">

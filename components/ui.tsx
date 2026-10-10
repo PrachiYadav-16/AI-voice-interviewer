@@ -50,7 +50,7 @@ export function ButtonLink({
 }
 
 const inputClass =
-  "w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-3 py-2.5 text-ink placeholder:text-muted/70 focus:border-indigo focus:outline-none focus:ring-2 focus:ring-indigo/25 aria-[invalid=true]:border-brick";
+  "w-full rounded-[var(--radius-control)] border border-line bg-surface px-3.5 py-2.5 text-ink shadow-[0_1px_2px_rgb(18_26_47/0.04)] transition-[border-color,box-shadow] placeholder:text-muted/60 hover:border-line-strong focus:border-indigo focus:outline-none focus:ring-4 focus:ring-indigo/15 aria-[invalid=true]:border-brick";
 
 export function TextField({
   label,
@@ -62,7 +62,7 @@ export function TextField({
   const id = useId();
   return (
     <div className={cn("space-y-1.5", className)}>
-      <label htmlFor={id} className="block text-sm font-bold">
+      <label htmlFor={id} className="block text-sm font-semibold text-ink/90">
         {label}
       </label>
       <input
@@ -91,7 +91,7 @@ export function TextArea({
   const id = useId();
   return (
     <div className={cn("space-y-1.5", className)}>
-      <label htmlFor={id} className="block text-sm font-bold">
+      <label htmlFor={id} className="block text-sm font-semibold text-ink/90">
         {label}
       </label>
       <textarea
@@ -124,7 +124,7 @@ export function SelectField({
   const id = useId();
   return (
     <div className={cn("space-y-1.5", className)}>
-      <label htmlFor={id} className="block text-sm font-bold">
+      <label htmlFor={id} className="block text-sm font-semibold text-ink/90">
         {label}
       </label>
       <select id={id} className={inputClass} {...rest}>
@@ -159,7 +159,7 @@ export function ChoiceGroup<T extends string>({
 }) {
   return (
     <fieldset className="space-y-2">
-      <legend className="mb-1 text-sm font-bold">{legend}</legend>
+      <legend className="mb-1 text-sm font-semibold text-ink/90">{legend}</legend>
       {hint && <p className="-mt-1 mb-2 text-sm text-muted">{hint}</p>}
       <div className={cn("grid grid-cols-1 gap-2", columns)}>
         {options.map((o) => {
@@ -168,8 +168,8 @@ export function ChoiceGroup<T extends string>({
             <label
               key={o.value}
               className={cn(
-                "relative flex cursor-pointer flex-col rounded-[var(--radius-control)] border bg-surface px-3.5 py-3 transition-colors has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-indigo/40",
-                checked ? "border-indigo bg-indigo-soft/60 shadow-[inset_0_0_0_1px_var(--color-indigo)]" : "border-line hover:border-line-strong",
+                "relative flex cursor-pointer flex-col gap-0.5 rounded-[var(--radius-control)] border bg-surface px-4 py-3 pr-9 transition-[border-color,background-color,box-shadow] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-indigo/20",
+                checked ? "border-indigo bg-indigo-soft/50 shadow-[inset_0_0_0_1px_var(--color-indigo)]" : "border-line hover:border-line-strong hover:bg-paper/60",
               )}
             >
               <input
@@ -180,7 +180,16 @@ export function ChoiceGroup<T extends string>({
                 onChange={() => onChange(o.value)}
                 className="sr-only"
               />
-              <span className="font-bold">{o.label}</span>
+              <span
+                aria-hidden
+                className={cn(
+                  "absolute right-3.5 top-3.5 grid h-4 w-4 place-items-center rounded-full border",
+                  checked ? "border-indigo bg-indigo" : "border-line-strong bg-surface",
+                )}
+              >
+                {checked && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+              </span>
+              <span className="font-semibold">{o.label}</span>
               {o.description && <span className="text-sm text-muted">{o.description}</span>}
               {o.note}
             </label>
@@ -250,11 +259,11 @@ export function ConfirmDialog({
       ref={ref}
       onClose={onClose}
       onCancel={onClose}
-      className="m-auto w-[min(92vw,30rem)] rounded-[var(--radius-card)] border border-line bg-surface p-0 text-ink shadow-xl backdrop:bg-ink/40"
+      className="m-auto w-[min(92vw,30rem)] rounded-[var(--radius-card)] border border-line bg-surface p-0 text-ink shadow-2xl backdrop:bg-ink/40 backdrop:backdrop-blur-[2px]"
       aria-labelledby="dlg-title"
     >
       <div className="space-y-3 p-6">
-        <h2 id="dlg-title" className="text-xl font-bold">
+        <h2 id="dlg-title" className="text-xl">
           {title}
         </h2>
         {children && <div className="text-muted">{children}</div>}
@@ -265,14 +274,14 @@ export function ConfirmDialog({
 }
 
 export function Card({ className, children, as: As = "section" }: { className?: string; children: React.ReactNode; as?: "section" | "div" | "article" }) {
-  return <As className={cn("rounded-[var(--radius-card)] border border-line bg-surface p-5 sm:p-6", className)}>{children}</As>;
+  return <As className={cn("rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-[var(--shadow-card)] sm:p-6", className)}>{children}</As>;
 }
 
 export function PageTitle({ title, description, actions }: { title: string; description?: React.ReactNode; actions?: React.ReactNode }) {
   return (
     <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="max-w-2xl space-y-2">
-        <h1 className="text-3xl font-bold sm:text-4xl">{title}</h1>
+        <h1 className="text-3xl sm:text-[2.5rem]">{title}</h1>
         {description && <div className="text-lg text-muted">{description}</div>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
@@ -293,4 +302,18 @@ export function Avatar({ src, name, className }: { src?: string; name: string; c
   }
   // eslint-disable-next-line @next/next/no-img-element -- user data URLs and remote SVG avatars
   return <img src={src} alt="" onError={() => setFailed(true)} className={cn("rounded-full border border-line bg-surface object-cover", className)} />;
+}
+
+/** Small number tile for dashboards. Only ever fed real, computed values. */
+export function StatTile({ label, value, hint, icon }: { label: string; value: React.ReactNode; hint?: string; icon?: React.ReactNode }) {
+  return (
+    <div className="rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-[var(--shadow-card)]">
+      <div className="flex items-center justify-between gap-2 text-sm text-muted">
+        <span>{label}</span>
+        {icon && <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-soft text-indigo">{icon}</span>}
+      </div>
+      <p className="mt-2 font-display text-3xl font-extrabold tabular-nums tracking-tight">{value}</p>
+      {hint && <p className="mt-1 text-sm text-muted">{hint}</p>}
+    </div>
+  );
 }

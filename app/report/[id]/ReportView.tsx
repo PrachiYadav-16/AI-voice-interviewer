@@ -46,7 +46,7 @@ export function ReportView({ userId, sessionId }: { userId: string; sessionId: s
   if (!session) {
     return (
       <div className="space-y-4 py-10">
-        <h1 className="text-2xl font-bold">Report not found</h1>
+        <h1 className="text-2xl">Report not found</h1>
         <p className="text-muted">It may have been deleted, or it&apos;s stored in a different browser.</p>
         <ButtonLink href="/history">Back to history</ButtonLink>
       </div>
@@ -161,11 +161,11 @@ export function ReportView({ userId, sessionId }: { userId: string; sessionId: s
             <div className="text-center sm:pr-6 sm:text-left">
               {report.overallScore !== null ? (
                 <>
-                  <p className="font-display text-6xl font-bold leading-none tabular-nums">{report.overallScore}</p>
+                  <p className="font-display text-6xl font-extrabold leading-none tabular-nums">{report.overallScore}</p>
                   <p className="mt-1 text-sm text-muted">out of 100</p>
                 </>
               ) : (
-                <p className="max-w-[10rem] font-display text-xl font-bold">No overall score</p>
+                <p className="max-w-[10rem] font-display text-xl font-extrabold">No overall score</p>
               )}
             </div>
             <div className="space-y-2.5">
@@ -178,7 +178,7 @@ export function ReportView({ userId, sessionId }: { userId: string; sessionId: s
 
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
-              <h2 className="mb-3 text-xl font-bold text-sage">What went well</h2>
+              <h2 className="mb-3 text-xl text-sage">What went well</h2>
               <ul className="list-disc space-y-2 pl-5">
                 {report.strengths.map((s, i) => (
                   <li key={i}>{s}</li>
@@ -186,7 +186,7 @@ export function ReportView({ userId, sessionId }: { userId: string; sessionId: s
               </ul>
             </Card>
             <Card>
-              <h2 className="mb-3 text-xl font-bold text-brick">What to work on</h2>
+              <h2 className="mb-3 text-xl text-brick">What to work on</h2>
               <ol className="list-decimal space-y-2 pl-5">
                 {report.improvements.map((s, i) => (
                   <li key={i}>{s}</li>
@@ -196,7 +196,7 @@ export function ReportView({ userId, sessionId }: { userId: string; sessionId: s
           </div>
 
           <section aria-labelledby="qa-heading" className="space-y-3">
-            <h2 id="qa-heading" className="text-2xl font-bold">
+            <h2 id="qa-heading" className="text-2xl">
               Answer by answer
             </h2>
             {report.questions.map((q, i) => (
@@ -209,7 +209,7 @@ export function ReportView({ userId, sessionId }: { userId: string; sessionId: s
 
         <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
           <Card>
-            <h2 className="mb-2 text-lg font-bold">Practise next</h2>
+            <h2 className="mb-2 text-lg">Practise next</h2>
             <p className="mb-1 font-bold">{FORMATS[report.nextPractice.format].title}</p>
             <p className="mb-4 text-muted">{report.nextPractice.reason}</p>
             <ButtonLink href={`/practice?track=${config.trackId}&format=${report.nextPractice.format}`} className="w-full">
@@ -217,7 +217,7 @@ export function ReportView({ userId, sessionId }: { userId: string; sessionId: s
             </ButtonLink>
           </Card>
           <Card>
-            <h2 className="mb-3 text-lg font-bold">Communication</h2>
+            <h2 className="mb-3 text-lg">Communication</h2>
             <p className="mb-2">
               <span className="font-bold">Clarity: </span>
               {report.communication.clarity}
@@ -230,7 +230,7 @@ export function ReportView({ userId, sessionId }: { userId: string; sessionId: s
           </Card>
           {rubric.framework && (
             <Card>
-              <h2 className="mb-2 text-lg font-bold">The {rubric.framework.name} method</h2>
+              <h2 className="mb-2 text-lg">The {rubric.framework.name} method</h2>
               <p className="text-[0.95rem]">{rubric.framework.explanation}</p>
             </Card>
           )}
@@ -281,7 +281,7 @@ function QuestionCard({ q, index, defaultOpen }: { q: QuestionFeedback; index: n
   return (
     <details className="group rounded-[var(--radius-card)] border border-line bg-surface" open={defaultOpen}>
       <summary className="flex cursor-pointer list-none items-start gap-3 p-5">
-        <span className="font-display text-lg font-bold text-muted">{index + 1}</span>
+        <span className="font-display text-lg font-extrabold text-muted">{index + 1}</span>
         <span className="flex-1">
           <span className="block font-bold">{q.question}</span>
           {!q.answered && <span className="text-sm text-muted">Skipped or not answered</span>}

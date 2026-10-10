@@ -36,7 +36,7 @@ const step = async (name, fn) => {
 await step("landing renders hero and CTA", async () => {
   await page.goto(BASE + "/");
   await page.getByRole("heading", { name: "Practice Any Interview. Speak With Confidence." }).waitFor();
-  await page.getByRole("link", { name: "Start practising" }).waitFor();
+  await page.getByRole("link", { name: "Start practising" }).first().waitFor();
   await page.screenshot({ path: OUT + "01-landing.png", fullPage: true });
 });
 

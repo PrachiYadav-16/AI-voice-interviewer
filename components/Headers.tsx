@@ -11,9 +11,15 @@ import { cn } from "@/lib/utils";
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <Link href="/" className={cn("flex items-center gap-2 font-display text-xl font-bold tracking-tight", className)}>
-      <svg viewBox="0 0 28 28" className="h-7 w-7" aria-hidden>
-        <rect width="28" height="28" rx="8" fill="var(--color-indigo)" />
+    <Link href="/" className={cn("flex items-center gap-2.5 font-display text-xl font-extrabold tracking-tight", className)}>
+      <svg viewBox="0 0 28 28" className="h-8 w-8" aria-hidden>
+        <defs>
+          <linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#5563ea" />
+            <stop offset="1" stopColor="#2c38b0" />
+          </linearGradient>
+        </defs>
+        <rect width="28" height="28" rx="8" fill="url(#logo-g)" />
         <path d="M9 8v12M14 11v6M19 8v12" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" />
         <circle cx="23.5" cy="4.5" r="3" fill="var(--color-marigold)" />
       </svg>
@@ -39,18 +45,18 @@ export function AppHeader() {
   const signOut = () => logout();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-paper/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-30 border-b border-line bg-surface/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo />
-        <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
+        <nav aria-label="Main" className="hidden items-center gap-1 rounded-full border border-line bg-paper/80 p-1 md:flex">
           {APP_NAV.map((n) => (
             <Link
               key={n.href}
               href={n.href}
               aria-current={pathname.startsWith(n.href) ? "page" : undefined}
               className={cn(
-                "rounded-md px-3 py-2 text-[0.95rem] font-bold text-muted hover:text-ink",
-                pathname.startsWith(n.href) && "text-ink underline decoration-marigold decoration-[3px] underline-offset-[10px]",
+                "rounded-full px-4 py-1.5 text-sm font-semibold text-muted transition-colors hover:text-ink",
+                pathname.startsWith(n.href) && "bg-surface text-ink shadow-[var(--shadow-card)]",
               )}
             >
               {n.label}
@@ -59,13 +65,18 @@ export function AppHeader() {
         </nav>
         <div className="hidden items-center gap-3 md:flex">
           {user && (
-            <span className="flex items-center gap-2 text-sm text-muted">
+            <Link href="/settings" className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-semibold hover:bg-paper">
               <Avatar src={user.avatar} name={user.name} className="h-8 w-8" />
-              {user.name}
-            </span>
+              <span className="max-w-[10rem] truncate">{user.name}</span>
+            </Link>
           )}
-          <button onClick={signOut} className="flex items-center gap-1.5 rounded-md px-2 py-2 text-sm font-bold text-muted hover:text-ink">
-            <LogOut className="h-4 w-4" aria-hidden /> Log out
+          <button
+            onClick={signOut}
+            className="grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-paper hover:text-ink"
+            aria-label="Log out"
+            title="Log out"
+          >
+            <LogOut className="h-4 w-4" aria-hidden />
           </button>
         </div>
         <button
@@ -81,11 +92,11 @@ export function AppHeader() {
       {open && (
         <nav id="mobile-nav" aria-label="Main" className="border-t border-line bg-surface px-4 py-3 md:hidden">
           {APP_NAV.map((n) => (
-            <Link key={n.href} href={n.href} onClick={() => setOpen(false)} className="block rounded-md px-2 py-3 font-bold">
+            <Link key={n.href} href={n.href} onClick={() => setOpen(false)} className="block rounded-lg px-3 py-3 font-semibold hover:bg-paper">
               {n.label}
             </Link>
           ))}
-          <button onClick={signOut} className="block w-full rounded-md px-2 py-3 text-left font-bold text-muted">
+          <button onClick={signOut} className="block w-full rounded-lg px-3 py-3 text-left font-semibold text-muted hover:bg-paper">
             Log out
           </button>
         </nav>
@@ -98,17 +109,17 @@ export function AppHeader() {
 export function SiteHeader() {
   const { user } = useAuth();
   return (
-    <header className="border-b border-line bg-paper">
+    <header className="sticky top-0 z-30 border-b border-line/70 bg-paper/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo />
         <nav aria-label="Site" className="flex items-center gap-1 sm:gap-2">
-          <Link href="/#how" className="hidden rounded-md px-3 py-2 font-bold text-muted hover:text-ink sm:block">
+          <Link href="/#how" className="hidden rounded-full px-3 py-2 text-sm font-semibold text-muted hover:text-ink sm:block">
             How it works
           </Link>
-          <Link href="/#types" className="hidden rounded-md px-3 py-2 font-bold text-muted hover:text-ink lg:block">
+          <Link href="/#types" className="hidden rounded-full px-3 py-2 text-sm font-semibold text-muted hover:text-ink lg:block">
             Interview types
           </Link>
-          <Link href="/privacy" className="hidden rounded-md px-3 py-2 font-bold text-muted hover:text-ink lg:block">
+          <Link href="/privacy" className="hidden rounded-full px-3 py-2 text-sm font-semibold text-muted hover:text-ink lg:block">
             Privacy
           </Link>
           {user ? (
@@ -117,7 +128,7 @@ export function SiteHeader() {
             </ButtonLink>
           ) : (
             <>
-              <Link href="/login" className="rounded-md px-3 py-2 font-bold text-ink hover:underline">
+              <Link href="/login" className="rounded-full px-3 py-2 text-sm font-semibold text-ink hover:bg-surface">
                 Log in
               </Link>
               <ButtonLink href="/signup" size="sm">
@@ -133,7 +144,7 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line">
+    <footer className="border-t border-line bg-surface">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p>IntervU is a practice tool. Scores and feedback are AI-generated and don&apos;t predict selection.</p>
         <nav aria-label="Footer" className="flex gap-4">
@@ -153,7 +164,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AppHeader />
-      <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+      <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         {children}
       </main>
     </>

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { RequireAuth } from "@/components/AuthProvider";
 import { AppShell } from "@/components/Headers";
-import { ButtonLink, Card, PageTitle } from "@/components/ui";
+import { Activity, Award, ClipboardCheck, Crosshair } from "lucide-react";
+import { ButtonLink, Card, PageTitle, StatTile } from "@/components/ui";
 import { useProfile, useSessions } from "@/lib/hooks/useUserData";
 import { summarise } from "@/lib/interview/progress";
 import { FORMATS } from "@/lib/interview/catalog";
@@ -30,8 +31,8 @@ function Dashboard({ user }: { user: PublicUser }) {
     return (
       <>
         <PageTitle title={`Welcome, ${firstName}`} description="Your first interview takes about five minutes to set up and start." />
-        <Card className="max-w-2xl space-y-4">
-          <h2 className="text-2xl font-bold">Start with a practice interview</h2>
+        <Card className="hero-wash max-w-3xl space-y-4 p-8 sm:p-10">
+          <h2 className="text-2xl">Start with a practice interview</h2>
           <p className="text-muted">
             Choose a government or private-sector role, talk through the questions out loud, then get feedback on each answer. Your progress will show
             up here after your first report.
@@ -67,7 +68,7 @@ function Dashboard({ user }: { user: PublicUser }) {
 
       {p.needsReport.length > 0 && (
         <Card className="mb-6 border-marigold/50 bg-marigold-soft/40">
-          <h2 className="text-lg font-bold">Waiting for feedback</h2>
+          <h2 className="text-lg">Waiting for feedback</h2>
           <ul className="mt-2 space-y-1">
             {p.needsReport.slice(0, 3).map((s) => (
               <li key={s.id}>
@@ -81,10 +82,32 @@ function Dashboard({ user }: { user: PublicUser }) {
         </Card>
       )}
 
+      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatTile label="Interviews done" value={p.completed} icon={<ClipboardCheck className="h-4 w-4" />} />
+        <StatTile
+          label="Latest score"
+          value={p.scoreSeries.length ? p.scoreSeries[p.scoreSeries.length - 1].score : "—"}
+          hint={p.scoreSeries.length ? "out of 100" : "after 3+ answers"}
+          icon={<Activity className="h-4 w-4" />}
+        />
+        <StatTile
+          label="Recent average"
+          value={p.averageRecent ?? "—"}
+          hint={p.averageRecent !== null ? `last ${Math.min(5, p.scoreSeries.length)} scored` : "no scores yet"}
+          icon={<Award className="h-4 w-4" />}
+        />
+        <StatTile
+          label="Focus area"
+          value={<span className="text-xl">{p.weakest[0]?.criterion ?? "—"}</span>}
+          hint={p.weakest[0] ? `${p.weakest[0].average.toFixed(1)}/5 average` : "appears after reports"}
+          icon={<Crosshair className="h-4 w-4" />}
+        />
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <div className="mb-4 flex items-baseline justify-between gap-3">
-            <h2 className="text-xl font-bold">Score trend</h2>
+            <h2 className="text-xl">Score trend</h2>
             <span className="text-sm text-muted">
               {p.completed} interview{p.completed === 1 ? "" : "s"} · {p.reported} report{p.reported === 1 ? "" : "s"}
             </span>
@@ -107,7 +130,7 @@ function Dashboard({ user }: { user: PublicUser }) {
         </Card>
 
         <Card>
-          <h2 className="mb-3 text-xl font-bold">Focus areas</h2>
+          <h2 className="mb-3 text-xl">Focus areas</h2>
           {p.weakest.length ? (
             <>
               <p className="mb-2 text-sm text-muted">Lowest-rated criteria in recent reports</p>
@@ -140,7 +163,7 @@ function Dashboard({ user }: { user: PublicUser }) {
 
         {latestReport?.report && (
           <Card>
-            <h2 className="mb-2 text-xl font-bold">Suggested next</h2>
+            <h2 className="mb-2 text-xl">Suggested next</h2>
             <p className="font-bold">{FORMATS[latestReport.report.nextPractice.format].title}</p>
             <p className="mb-4 text-muted">{latestReport.report.nextPractice.reason}</p>
             <ButtonLink href={`/practice?track=${latestReport.config.trackId}&format=${latestReport.report.nextPractice.format}`} variant="secondary">
@@ -151,7 +174,7 @@ function Dashboard({ user }: { user: PublicUser }) {
 
         <Card className={latestReport?.report ? "lg:col-span-2" : "lg:col-span-3"}>
           <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="text-xl font-bold">Recent interviews</h2>
+            <h2 className="text-xl">Recent interviews</h2>
             <Link href="/history" className="font-bold text-indigo underline">
               All history
             </Link>

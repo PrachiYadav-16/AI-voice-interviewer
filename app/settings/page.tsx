@@ -75,7 +75,7 @@ function Settings({ user }: { user: PublicUser }) {
         )}
 
         <Card>
-          <h2 className="mb-4 text-xl font-bold">Profile</h2>
+          <h2 className="mb-4 text-xl">Profile</h2>
           <form onSubmit={saveProfile} className="space-y-4">
             <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
             <TextField label="Email" value={user.email} disabled hint="Email can't be changed for a device account." />
@@ -85,7 +85,7 @@ function Settings({ user }: { user: PublicUser }) {
         </Card>
 
         <Card>
-          <h2 className="mb-1 text-xl font-bold">Saved resume</h2>
+          <h2 className="mb-1 text-xl">Saved resume</h2>
           <p className="mb-4 text-muted">Used to personalise interviews when you choose it. Only the text is kept, in this browser.</p>
           {profile.resumeText && !draftResume ? (
             <div className="space-y-3">
@@ -133,7 +133,7 @@ function Settings({ user }: { user: PublicUser }) {
         </Card>
 
         <Card>
-          <h2 className="mb-1 text-xl font-bold">Your data</h2>
+          <h2 className="mb-1 text-xl">Your data</h2>
           <p className="mb-4 text-muted">
             {sessions.length} interview{sessions.length === 1 ? "" : "s"} stored in this browser. Audio recordings are not kept by IntervU.
           </p>

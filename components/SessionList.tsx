@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FORMATS, getTrack } from "@/lib/interview/catalog";
+import { TrackIcon } from "./TrackIcon";
 import type { InterviewSession } from "@/lib/interview/types";
 
 export function SessionList({ sessions }: { sessions: InterviewSession[] }) {
@@ -12,9 +13,12 @@ export function SessionList({ sessions }: { sessions: InterviewSession[] }) {
         const href = s.status === "in-progress" && !s.transcript.length ? `/interview/${s.id}` : `/report/${s.id}`;
         return (
           <li key={s.id}>
-            <Link href={href} className="flex items-center justify-between gap-4 py-3 hover:bg-paper">
-              <span className="min-w-0">
-                <span className="block truncate font-bold">{s.config.roleTitle}</span>
+            <Link href={href} className="-mx-2 flex items-center justify-between gap-4 rounded-xl px-2 py-3 transition-colors hover:bg-paper">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-indigo-soft text-indigo">
+                <TrackIcon id={s.config.trackId} className="h-5 w-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-semibold">{s.config.roleTitle}</span>
                 <span className="block truncate text-sm text-muted">
                   {track?.title ?? s.config.field} · {FORMATS[s.config.format].title} · {new Date(s.createdAt).toLocaleDateString()}
                 </span>
@@ -22,7 +26,7 @@ export function SessionList({ sessions }: { sessions: InterviewSession[] }) {
               <span className="shrink-0 text-right text-sm">
                 {s.report ? (
                   s.report.overallScore !== null ? (
-                    <span className="font-display text-xl font-bold tabular-nums">{s.report.overallScore}</span>
+                    <span className="font-display text-xl font-extrabold tabular-nums">{s.report.overallScore}</span>
                   ) : (
                     <span className="text-muted">Report ready</span>
                   )

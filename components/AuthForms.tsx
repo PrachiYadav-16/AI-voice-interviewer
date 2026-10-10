@@ -7,6 +7,7 @@ import { login, resetPassword, signup, validateSignup } from "@/lib/auth";
 import { useAuth } from "./AuthProvider";
 import { Logo } from "./Headers";
 import { AvatarPicker, DEFAULT_AVATARS } from "./AvatarPicker";
+import { Check, Info } from "lucide-react";
 import { Button, Notice, TextField } from "./ui";
 
 function safeNext(next: string | null): string {
@@ -16,21 +17,51 @@ function safeNext(next: string | null): string {
 
 function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh">
-      <div className="mx-auto flex h-16 max-w-6xl items-center px-4 sm:px-6">
-        <Logo />
-      </div>
-      <main id="main" className="mx-auto grid max-w-md gap-6 px-4 pb-16 pt-6">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">{title}</h1>
-          <p className="text-muted">{subtitle}</p>
+    <div className="grid min-h-dvh lg:grid-cols-[1fr_1.1fr]">
+      {/* Brand panel (desktop) */}
+      <aside className="relative hidden overflow-hidden bg-ink p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <div aria-hidden className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-indigo/40 blur-3xl" />
+        <div aria-hidden className="absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-marigold/20 blur-3xl" />
+        <Logo className="relative text-white" />
+        <div className="relative max-w-md space-y-6">
+          <p className="font-display text-3xl font-extrabold leading-tight">Practise out loud. Get feedback on what you actually said.</p>
+          <ul className="space-y-3 text-white/80">
+            {[
+              "UPSC, SSB, banking, PSU and private-sector interviews",
+              "Follow-up questions based on your answers",
+              "Rubric-based report for every answer",
+            ].map((t) => (
+              <li key={t} className="flex items-start gap-3">
+                <Check className="mt-0.5 h-5 w-5 shrink-0 text-marigold" aria-hidden />
+                {t}
+              </li>
+            ))}
+          </ul>
         </div>
-        {children}
-        <Notice tone="info">
-          Accounts and interview history are stored in this browser only. They don&apos;t sync to other devices, and clearing
-          site data removes them. <Link href="/privacy" className="font-bold underline">How your data is handled</Link>
-        </Notice>
-      </main>
+        <p className="relative text-sm text-white/50">A practice tool. Feedback is AI-generated and doesn&apos;t predict selection.</p>
+      </aside>
+
+      <div className="flex flex-col">
+        <div className="flex h-16 items-center px-4 sm:px-8 lg:hidden">
+          <Logo />
+        </div>
+        <main id="main" className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-4 pb-16 pt-6 lg:py-16">
+          <div className="space-y-2">
+            <h1 className="text-3xl sm:text-4xl">{title}</h1>
+            <p className="text-muted">{subtitle}</p>
+          </div>
+          <div className="rounded-[var(--radius-card)] border border-line bg-surface p-6 shadow-[var(--shadow-card)]">{children}</div>
+          <p className="flex gap-2 text-sm text-muted">
+            <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>
+              Accounts and interview history are stored in this browser only, and don&apos;t sync to other devices.{" "}
+              <Link href="/privacy" className="font-semibold text-ink underline">
+                How your data is handled
+              </Link>
+            </span>
+          </p>
+        </main>
+      </div>
     </div>
   );
 }
@@ -82,7 +113,7 @@ export function LoginForm() {
           required
         />
         <p className="-mt-2 text-right text-sm">
-          <Link href="/forgot-password" className="font-bold text-indigo underline">
+          <Link href="/forgot-password" className="font-semibold text-indigo hover:underline">
             Forgot password?
           </Link>
         </p>
@@ -90,9 +121,9 @@ export function LoginForm() {
           Log in
         </Button>
       </form>
-      <p className="text-muted">
+      <p className="mt-5 text-center text-sm text-muted">
         New here?{" "}
-        <Link href={`/signup${next !== "/dashboard" ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-bold text-indigo underline">
+        <Link href={`/signup${next !== "/dashboard" ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-semibold text-indigo hover:underline">
           Create an account
         </Link>
       </p>
@@ -151,9 +182,9 @@ export function SignupForm() {
           Create account
         </Button>
       </form>
-      <p className="text-muted">
+      <p className="mt-5 text-center text-sm text-muted">
         Already have an account?{" "}
-        <Link href="/login" className="font-bold text-indigo underline">
+        <Link href="/login" className="font-semibold text-indigo hover:underline">
           Log in
         </Link>
       </p>
@@ -198,9 +229,9 @@ export function ForgotPasswordForm() {
           Reset password and log in
         </Button>
       </form>
-      <p className="text-muted">
+      <p className="mt-5 text-center text-sm text-muted">
         Remembered it?{" "}
-        <Link href="/login" className="font-bold text-indigo underline">
+        <Link href="/login" className="font-semibold text-indigo hover:underline">
           Log in
         </Link>
       </p>
