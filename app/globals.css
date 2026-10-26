@@ -1,26 +1,104 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * IntervU design tokens. Tailwind v4 reads theme values from @theme, not from a JS
+ * config file, so every custom colour and font is declared here.
+ */
+@theme {
+  --color-paper: #f6f7fb;
+  --color-surface: #ffffff;
+  --color-ink: #121a2f;
+  --color-muted: #5a6478;
+  --color-line: #e3e7ef;
+  --color-line-strong: #c6cdd9;
+  --color-indigo: #3d4bd6;
+  --color-indigo-deep: #2c38b0;
+  --color-indigo-soft: #eceefd;
+  /* Marigold is reserved for "live": listening, recording, the current turn. */
+  --color-marigold: #f0a00c;
+  --color-marigold-soft: #fff4dc;
+  --color-sage: #1f7a54;
+  --color-sage-soft: #e2f4ec;
+  --color-brick: #c0392b;
+  --color-brick-soft: #fdecea;
+
+  --font-display: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", "Inter", "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
+
+  /* Inter reads heavy at 700 in small UI text; "bold" maps to semibold across the app. */
+  --font-weight-bold: 600;
+
+  --radius-card: 18px;
+  --radius-control: 12px;
+
+  --shadow-card: 0 1px 2px rgb(18 26 47 / 0.04), 0 2px 8px -2px rgb(18 26 47 / 0.06);
+  --shadow-raised: 0 1px 2px rgb(18 26 47 / 0.05), 0 18px 40px -18px rgb(30 40 120 / 0.28);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 750;
+    letter-spacing: -0.022em;
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  :focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--color-indigo) 70%, transparent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  ::selection {
+    background: var(--color-indigo-soft);
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Flat hero band with a faint dot grid instead of a colour gradient. */
+  .hero-wash {
+    background-color: var(--color-paper);
+    background-image: radial-gradient(rgb(18 26 47 / 0.07) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
+
+@keyframes speaking {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

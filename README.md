@@ -1,244 +1,99 @@
-# 🎤 IntervU - Your AI-Powered Interview Partner
+# IntervU
 
-Hey there! Welcome to **IntervU** - your personal AI interview coach that helps you practice and ace your next job interview. Whether you're preparing for a frontend role, data science position, or an MBA interview, we've got you covered!
+Spoken mock interviews for government and private-sector roles. You talk with an AI interviewer that asks one question at a time, waits while you think and follows up on what you actually said. Afterwards you get rubric-based feedback on each answer.
 
-## ✨ What Makes IntervU Special?
+- **Government and public sector:** UPSC Civil Services, State PSCs, SSB, banking officers and regulators, PSUs, teaching and research, international civil service, and custom posts. Each option states whether that recruitment normally includes an interview.
+- **Private sector:** software, data and AI, design, product, business functions, people and support, healthcare/law/education, leadership, and campus placements.
+- **Formats:** HR, behavioural (STAR), technical, situational, resume deep-dive, job-description match, company-focused, personality test, panel simulation, pressure round, custom.
+- **Languages:** English (India, US, UK), Hindi, Hindi–English mix.
 
-IntervU is not just another interview prep tool. It's a complete voice-based interview platform where you can:
+## How it works
 
-- 🎯 **Practice Real Interviews**: Have actual voice conversations with an AI interviewer
-- 🎨 **Choose Your Role**: Pick from 20+ different job roles across tech, business, and design
-- 📝 **Get Live Transcripts**: See your conversation in real-time as you speak
-- 🤖 **Smart AI Questions**: The AI asks role-specific questions based on your chosen position
-- 💼 **Upload Your Resume**: Personalize your profile with your actual resume
-- 🎭 **Custom Avatars**: Choose from fun avatars or upload your own photo
+| Part | Where |
+| --- | --- |
+| Interview catalog (tracks, roles, formats, styles) | `lib/interview/catalog.ts` — add a role or field by adding data here |
+| Interviewer instructions and Vapi assistant config | `lib/interview/prompt.ts` |
+| Live call state machine (pure, unit-tested) | `lib/interview/session.ts` |
+| Vapi SDK wiring, mic checks, pause/mute/skip/end | `lib/hooks/useVapiInterview.ts` |
+| Rubrics and the 1–5 scale | `lib/interview/rubrics.ts` |
+| Overall score calculation | `lib/interview/scoring.ts` |
+| Device accounts (PBKDF2-hashed passwords) | `lib/auth.ts` |
+| Browser storage for profiles, sessions and reports | `lib/storage.ts` |
+| Server routes | `app/api/parse-document`, `app/api/plan`, `app/api/evaluate`, `app/api/status` |
 
-## 🚀 Getting Started
+**Voice.** The browser runs the call with the Vapi Web SDK (`@vapi-ai/web` 2.7) using a transient assistant built per interview. Turn-taking uses Vapi's smart endpointing for English and transcription endpointing for Hindi, requires two spoken words before the interviewer stops talking, and nudges once after 25 seconds of silence. Pause mutes your mic and the interviewer; skip, repeat and wrap-up send control messages. The call's hard limit is set from the interview length (Vapi's default is 10 minutes).
 
-### What You'll Need
+**Feedback.** After the call, the transcript is sent to `/api/evaluate`, which asks an OpenAI-compatible model to rate each answer 1–5 against the rubric for that interview type, with evidence from your words. IntervU computes the overall score itself as the average rating mapped to 0–100, and shows no overall score when fewer than three answers were rated. Feedback covers the words only: tone, pace, confidence and body language are not measured.
 
-Before we dive in, make sure you have:
-- Node.js (version 16 or higher)
-- A Vapi AI account (don't worry, it's free to start!)
-- About 5 minutes to set everything up
+**Data.** Accounts, transcripts, reports and resume text live in the browser's `localStorage`, scoped per account. The server stores nothing. See `/privacy` in the app.
 
-### Step 1: Clone This Project
+## Setup
 
-Open your terminal and run:
+Requirements: Node.js 20.9 or later (tested on 22), npm.
 
 ```bash
 git clone https://github.com/PrachiYadav-16/AI-voice-interviewer.git
 cd AI-voice-interviewer
+npm ci
+cp .env.example .env.local   # then fill in the values below
+npm run dev                  # http://localhost:3000
 ```
 
-### Step 2: Install Everything
+### Environment variables
 
-Just run this command and grab a coffee while the magic happens:
+| Variable | Needed for | Where to get it |
+| --- | --- | --- |
+| `NEXT_PUBLIC_VAPI_PUBLIC_KEY` | Live interviews | [Vapi dashboard](https://dashboard.vapi.ai) → API Keys → **Public** key. Restrict it to your domains. Never use the private key here. |
+| `LLM_API_KEY` | Feedback reports, personalised question plans | An OpenAI API key, or a key for any OpenAI-compatible provider |
+| `LLM_BASE_URL` | Optional | Defaults to `https://api.openai.com/v1` |
+| `LLM_MODEL` | Optional | Defaults to `gpt-4.1-mini`; must support JSON response format |
+| `NEXT_PUBLIC_VAPI_LLM_MODEL` | Optional | Interviewer model, default `gpt-4.1` |
+| `NEXT_PUBLIC_VAPI_VOICE_ID` | Optional | ElevenLabs voice ID, default `21m00Tcm4TlvDq8ikWAM` |
+
+Without `NEXT_PUBLIC_VAPI_PUBLIC_KEY` the app runs but interviews can't start (the UI says so). Without `LLM_API_KEY` interviews run and transcripts are saved, but reports and plans show a "not configured" message. Vapi usage is billed to the Vapi account, including the speech, model and voice providers it calls.
+
+Microphone access needs HTTPS in production (`localhost` is allowed in development).
+
+### Scripts
 
 ```bash
-npm install
+npm run dev         # development server
+npm run build       # production build
+npm start           # serve the production build
+npm test            # unit and API tests (Vitest)
+npm run typecheck   # TypeScript
+npm run lint        # ESLint, zero warnings allowed
+npm run check       # all three
 ```
 
-### Step 3: Get Your API Key
+Browser smoke test (optional): `npm i -D playwright && npx playwright install chromium`, start the app, then `node tests/e2e/smoke.mjs`. It uses a fake microphone and does not test a real conversation.
 
-1. Head over to [Vapi Dashboard](https://dashboard.vapi.ai)
-2. Sign up (it's quick and free!)
-3. Create a new API key
-4. Copy that key - you'll need it in a sec
+## Deploying
 
-### Step 4: Set Up Your Environment
+Vercel works out of the box:
 
-Create a file called `.env.local` in your project root and add:
+1. Import the repository in Vercel.
+2. Add the environment variables above (Production and Preview).
+3. Deploy. The API routes run on the Node.js runtime; `/api/evaluate` may take up to 90 seconds, so use a plan whose function timeout allows that.
+4. In the Vapi dashboard, restrict the public key to your deployed domain.
 
-```env
-NEXT_PUBLIC_VAPI_API_KEY=your_actual_api_key_here
-```
+Any host that runs `next start` on Node 20.9+ also works.
 
-Replace `your_actual_api_key_here` with the key you just copied.
+## Known limitations
 
-### Step 5: Fire It Up!
+- **Accounts are per browser.** They keep profiles separate on a shared device but are not server-side authentication, and data doesn't sync across devices. Adding cloud sync means replacing `lib/storage.ts` and `lib/auth.ts` with calls to a backend (for example Supabase or a Next.js API with a database).
+- **Rate limiting is in-memory**, so on serverless hosts it applies per instance. Put a shared store or the host's firewall in front for strict limits.
+- **Current affairs.** No live news source is connected. The interviewer is told not to assert recent facts, and reports note that recent claims can't be verified.
+- **Progress counter is approximate.** "Question n of about N" counts interviewer turns that ask a question; follow-ups can make it run ahead.
+- **Speech-to-text errors** can affect feedback; the evaluator is told to ignore obvious transcription mistakes.
+- **Older `.doc` files and scanned PDFs** can't be read; paste the text instead.
+- **`npm audit`** reports a moderate advisory in `sprintf-js`, reached only through mammoth's command-line argument parser, which IntervU never calls. The suggested fix downgrades mammoth to a 2015 release, so it hasn't been applied.
 
-Run the development server:
+## Security notes
 
-```bash
-npm run dev
-```
-
-Now open [http://localhost:3000](http://localhost:3000) in your browser and boom! 🎉
-
-## 🎨 Cool Features Explained
-
-### Beautiful Landing Page
-When you first log in, you'll see a gorgeous purple gradient hero section with an animated robot. We've put a lot of love into making it look professional and fun at the same time!
-
-### 20+ Job Roles to Practice With
-
-We've got interviews for:
-
-**Engineering & Tech:**
-- Frontend Developer (React, Vue, Angular)
-- Backend Developer (APIs, Databases)
-- Full Stack Developer
-- Mobile Developer (iOS, Android)
-- DevOps Engineer
-- Cloud Architect
-- Security Engineer
-- QA Engineer
-
-**Data & AI:**
-- Data Analyst
-- Data Scientist
-- Machine Learning Engineer
-
-**Product & Business:**
-- Product Manager
-- Business Analyst
-- Scrum Master
-
-**MBA Roles:**
-- General Management
-- Marketing
-- Finance
-- HR Specialist
-
-**Design:**
-- UI/UX Designer
-- Graphic Designer
-
-### Smart AI Interviewer
-
-Our AI doesn't just ask random questions. It actually understands your role and asks relevant questions like:
-- For Frontend: "Tell me about your experience with React hooks"
-- For Data Science: "How would you handle missing data in a dataset?"
-- For Product Manager: "Describe how you prioritize features"
-
-Pretty cool, right?
-
-## 🛠️ Tech Stack (For The Nerds)
-
-We built this with some awesome technologies:
-
-- **Next.js 14**: The React framework that makes everything fast
-- **TypeScript**: Because we like our code type-safe
-- **Tailwind CSS**: For those beautiful purple gradients
-- **Vapi AI**: The voice engine that powers our AI interviews
-- **Lucide React**: Beautiful icons throughout the app
-
-## 📁 How It's Organized
-
-```
-IntervU/
-├── app/
-│   ├── components/          # All our UI components
-│   │   ├── AuthPage.tsx     # Login/Signup page
-│   │   ├── HomePage.tsx     # Main landing page
-│   │   ├── Interview.tsx    # The interview experience
-│   │   ├── JobRoleCard.tsx  # Individual role cards
-│   │   └── ...
-│   ├── context/             # React context for state
-│   └── page.tsx             # Main entry point
-├── types/                   # TypeScript type definitions
-├── lib/                     # Utility functions
-└── public/                  # Static files
-```
-
-## 🎯 How to Use IntervU
-
-1. **Sign Up**: Create your account with name, email, password
-2. **Pick an Avatar**: Choose from our collection or upload your photo
-3. **Upload Resume**: This helps personalize your experience
-4. **Choose Your Role**: Pick the job you're interviewing for
-5. **Start Talking**: Click that mic button and start your interview
-6. **Review Transcript**: See everything you said in real-time
-
-## 🎨 Customization Options
-
-Want to make it your own? Here's what you can tweak:
-
-### Colors
-All our colors are in `tailwind.config.ts`. Change the purple to blue, or go wild with your brand colors!
-
-### Interview Questions
-The AI prompts are in `app/components/Interview.tsx`. Customize them to match your interview style.
-
-### Job Roles
-Add more roles in `types/jobRoles.ts`. We made it super easy to extend!
-
-## 🐛 Troubleshooting
-
-**Microphone not working?**
-- Check browser permissions (look for that mic icon in your address bar)
-- Make sure you're using HTTPS (required for mic access)
-- Try a different browser
-
-**API errors?**
-- Double-check your API key in `.env.local`
-- Make sure you have credits in your Vapi account
-- Check the browser console for detailed error messages
-
-**Interview not starting?**
-- Verify your internet connection
-- Check if the dev server is still running
-- Look for any red errors in the terminal
-
-## 🚀 Deploying to Production
-
-Ready to share this with the world?
-
-### Deploy to Vercel (Easiest Way)
-
-1. Push your code to GitHub
-2. Go to [Vercel](https://vercel.com)
-3. Import your repository
-4. Add your `NEXT_PUBLIC_VAPI_API_KEY` in environment variables
-5. Hit deploy and you're live!
-
-### Other Platforms
-
-IntervU works great on:
-- Netlify
-- AWS Amplify
-- Railway
-- Any platform that supports Next.js
-
-## 💡 Pro Tips
-
-- **Use Headphones**: Better audio quality = better experience
-- **Find a Quiet Space**: The AI works best without background noise
-- **Take Your Time**: There's no rush - think before you answer
-- **Be Natural**: Talk like you would in a real interview
-
-## 🤝 Contributing
-
-Found a bug? Have a cool feature idea? We'd love to hear from you!
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b cool-new-feature`)
-3. Commit your changes (`git commit -m 'Added something awesome'`)
-4. Push to the branch (`git push origin cool-new-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is open source and available under the MIT License. Feel free to use it, modify it, and make it your own!
-
-## 🙏 Acknowledgments
-
-- Huge thanks to the Vapi AI team for their awesome voice API
-- Next.js team for making React development so smooth
-- Everyone who's tested and given feedback
-
-## 💬 Need Help?
-
-Got questions? Running into issues? Feel free to:
-- Open an issue on GitHub
-- Check out the [Vapi Documentation](https://docs.vapi.ai)
-- Review the [Next.js Docs](https://nextjs.org/docs)
-
----
-
-**Built with ❤️ by developers who've been through way too many interviews ourselves**
-
-Happy interviewing! May your answers be confident and your pauses minimal. 🎤✨
-
-
+- Secret keys (`LLM_API_KEY`) are only read on the server. `/api/status` exposes booleans, never values.
+- AI routes reject cross-site requests, validate input with Zod, cap request sizes and are rate-limited.
+- Uploaded files are identified by their bytes, limited to 5 MB, parsed in memory and not stored.
+- Resume and job-description text is fenced as untrusted input in prompts.
+- Security headers restrict microphone use to this site and block framing.
+- An earlier version of this repository committed a Vapi key as a fallback in `app/page.tsx`. It has been removed from the code but remains in git history, so **rotate that key in the Vapi dashboard**.
