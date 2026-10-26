@@ -217,7 +217,7 @@ export function LiveInterview({ userId, sessionId }: { userId: string; sessionId
             <p
               role="status"
               className={cn(
-                "rounded-full px-3 py-1 text-sm font-bold",
+                "rounded-md px-3 py-1 text-sm font-bold",
                 state.phase === "active" && state.floor === "candidate" ? "bg-marigold-soft text-[#7a4f00]" : "bg-surface text-muted",
               )}
             >

@@ -10,7 +10,7 @@ export function scoreTone(score: number | null) {
 
 export function ScoreChip({ score }: { score: number | null }) {
   const label = score === null ? "Not rated" : `${score}/5 · ${SCALE[score - 1].label}`;
-  return <span className={cn("inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold", scoreTone(score))}>{label}</span>;
+  return <span className={cn("inline-block whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-bold", scoreTone(score))}>{label}</span>;
 }
 
 /** Horizontal 1–5 bar; empty when not rated. */
@@ -23,7 +23,7 @@ export function CriterionBar({ name, average, rated }: { name: string; average: 
         <div className={cn("h-full rounded-full", average !== null && average >= 4 ? "bg-sage" : average !== null && average < 3 ? "bg-brick" : "bg-indigo")} style={{ width: `${Math.max(pct, average === null ? 0 : 3)}%` }} />
       </div>
       <span className="text-right font-bold tabular-nums" title={`${rated} rating${rated === 1 ? "" : "s"}`}>
-        {average === null ? "—" : average.toFixed(1)}
+        {average === null ? "n/a" : average.toFixed(1)}
       </span>
     </div>
   );

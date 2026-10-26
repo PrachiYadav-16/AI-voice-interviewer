@@ -20,7 +20,7 @@ const FAQ = [
   },
   {
     q: "How is my answer scored?",
-    a: "Each answer is rated from 1 to 5 against a rubric for that interview type — for example context, actions and outcome for behavioural questions. The overall number is the average of those ratings. There's no overall number if you answered fewer than three questions.",
+    a: "Each answer is rated from 1 to 5 against a rubric for that interview type, for example context, actions and outcome for behavioural questions. The overall number is the average of those ratings. There's no overall number if you answered fewer than three questions.",
   },
   {
     q: "Does it judge my confidence or body language?",
@@ -53,7 +53,6 @@ const STEPS = [
 function LiveRoomPreview() {
   return (
     <figure className="relative">
-      <div aria-hidden className="absolute -inset-4 -z-10 rounded-[28px] bg-gradient-to-br from-indigo/15 via-transparent to-marigold/15 blur-2xl" />
       <div className="overflow-hidden rounded-[22px] border border-line bg-surface shadow-[var(--shadow-raised)]">
         <div className="flex items-center justify-between border-b border-line bg-paper/70 px-5 py-3 text-sm">
           <span className="flex items-center gap-2 font-semibold">
@@ -105,10 +104,10 @@ export default function LandingPage() {
       <SiteHeader />
       <main id="main">
         {/* Hero */}
-        <section className="hero-wash">
+        <section className="hero-wash border-b border-line">
           <div className="mx-auto grid max-w-6xl gap-14 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:pb-28 lg:pt-20">
             <div className="space-y-7">
-              <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-sm font-semibold text-muted shadow-[var(--shadow-card)]">
+              <p className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-1 text-sm font-semibold text-muted">
                 <Mic className="h-4 w-4 text-indigo" aria-hidden /> Voice mock interviews · English and Hindi
               </p>
               <h1 className="text-[2.75rem] font-extrabold leading-[1.04] sm:text-[3.75rem]">Practice Any Interview. Speak With Confidence.</h1>
@@ -162,7 +161,7 @@ export default function LandingPage() {
         <section id="types" className="scroll-mt-20 mx-auto max-w-6xl px-4 py-20 sm:px-6">
           <h2 className="mb-3 text-3xl sm:text-4xl">Interview types</h2>
           <p className="mb-12 max-w-2xl text-lg text-muted">
-            HR, behavioural, technical, situational, resume deep-dives, job-description matching, panel simulations and pressure rounds — from intern to
+            HR, behavioural, technical, situational, resume deep-dives, job-description matching, panel simulations and pressure rounds, from intern to
             leadership level.
           </p>
           <div className="grid gap-5 lg:grid-cols-3">
@@ -175,13 +174,13 @@ export default function LandingPage() {
                 <p className="mb-5 text-sm text-muted">{c.description}</p>
                 {c.id === "custom" ? (
                   <p className="text-[0.95rem] text-ink/80">
-                    Type in any role — pharmacist, civil judge, content writer — choose a format, and add your own topics and questions. The interviewer asks
+                    Type in any role (pharmacist, civil judge, content writer), choose a format, and add your own topics and questions. The interviewer asks
                     them as written and fills the rest.
                   </p>
                 ) : (
                   <ul className="flex flex-wrap gap-2">
                     {tracksFor(c.id).map((t) => (
-                      <li key={t.id} className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-3 py-1 text-sm">
+                      <li key={t.id} className="inline-flex items-center gap-1.5 rounded-md border border-line bg-paper px-2.5 py-1 text-sm">
                         <TrackIcon id={t.id} className="h-3.5 w-3.5 text-muted" />
                         {t.title}
                       </li>
@@ -227,18 +226,18 @@ export default function LandingPage() {
             <div className="rounded-[22px] border border-line bg-paper p-5 shadow-[var(--shadow-raised)] sm:p-7" aria-label="Example report excerpt">
               <div className="mb-5 flex items-center justify-between">
                 <p className="text-sm font-semibold text-muted">Example report excerpt</p>
-                <span className="rounded-full bg-surface px-3 py-1 font-display text-sm font-extrabold tabular-nums shadow-[var(--shadow-card)]">58 / 100</span>
+                <span className="rounded-md bg-surface px-3 py-1 font-display text-sm font-extrabold tabular-nums shadow-[var(--shadow-card)]">58 / 100</span>
               </div>
               <p className="mb-4 font-display text-lg font-extrabold">Tell me about a time a project fell behind schedule.</p>
               <ul className="mb-5 space-y-2.5 text-[0.95rem]">
                 {[
                   ["Context", "4/5 · Strong", "bg-sage-soft text-sage", "Final-year project, two weeks late on prototype."],
-                  ["Actions", "2/5 · Weak", "bg-brick-soft text-brick", "“Reorganised how the team split the work” — no specifics."],
-                  ["Outcome", "2/5 · Weak", "bg-brick-soft text-brick", "“We caught up” — no measure of the result."],
+                  ["Actions", "2/5 · Weak", "bg-brick-soft text-brick", "“Reorganised how the team split the work”, but no specifics."],
+                  ["Outcome", "2/5 · Weak", "bg-brick-soft text-brick", "“We caught up”, but no measure of the result."],
                 ].map(([n, s, cls, e]) => (
                   <li key={n} className="grid gap-1 rounded-xl bg-surface px-3 py-2.5 sm:grid-cols-[5.5rem_auto_1fr] sm:items-baseline sm:gap-3">
                     <span className="font-semibold">{n}</span>
-                    <span className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}>{s}</span>
+                    <span className={`w-fit rounded-md px-2 py-0.5 text-xs font-semibold ${cls}`}>{s}</span>
                     <span className="text-sm text-muted">{e}</span>
                   </li>
                 ))}
@@ -271,7 +270,7 @@ export default function LandingPage() {
                 <X className="h-5 w-5" aria-hidden /> Not measured
               </h3>
               <p className="text-muted">
-                Your tone, pace, accent, confidence or body language — and your chances of selection. A score here is feedback on one practice session.
+                Your tone, pace, accent, confidence or body language, or your chances of selection. A score here is feedback on one practice session.
               </p>
             </div>
           </div>

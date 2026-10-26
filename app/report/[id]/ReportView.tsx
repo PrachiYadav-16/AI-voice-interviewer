@@ -240,7 +240,7 @@ export function ReportView({ userId, sessionId }: { userId: string; sessionId: s
               <div className="mt-3 space-y-3 text-[0.95rem]">
                 <p>
                   Each answer was rated against the <strong>{rubric.title.toLowerCase()}</strong> rubric. The overall number is the average of those ratings,
-                  calculated by IntervU — not chosen by the AI.
+                  calculated by IntervU, not chosen by the AI.
                 </p>
                 <ul className="space-y-1">
                   {rubric.criteria.map((c) => (

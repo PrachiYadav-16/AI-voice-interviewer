@@ -31,7 +31,7 @@ function Dashboard({ user }: { user: PublicUser }) {
     return (
       <>
         <PageTitle title={`Welcome, ${firstName}`} description="Your first interview takes about five minutes to set up and start." />
-        <Card className="hero-wash max-w-3xl space-y-4 p-8 sm:p-10">
+        <Card className="max-w-3xl space-y-4 p-8 sm:p-10">
           <h2 className="text-2xl">Start with a practice interview</h2>
           <p className="text-muted">
             Choose a government or private-sector role, talk through the questions out loud, then get feedback on each answer. Your progress will show
@@ -86,19 +86,19 @@ function Dashboard({ user }: { user: PublicUser }) {
         <StatTile label="Interviews done" value={p.completed} icon={<ClipboardCheck className="h-4 w-4" />} />
         <StatTile
           label="Latest score"
-          value={p.scoreSeries.length ? p.scoreSeries[p.scoreSeries.length - 1].score : "—"}
+          value={p.scoreSeries.length ? p.scoreSeries[p.scoreSeries.length - 1].score : <span className="text-xl text-muted">Not yet</span>}
           hint={p.scoreSeries.length ? "out of 100" : "after 3+ answers"}
           icon={<Activity className="h-4 w-4" />}
         />
         <StatTile
           label="Recent average"
-          value={p.averageRecent ?? "—"}
+          value={p.averageRecent ?? <span className="text-xl text-muted">Not yet</span>}
           hint={p.averageRecent !== null ? `last ${Math.min(5, p.scoreSeries.length)} scored` : "no scores yet"}
           icon={<Award className="h-4 w-4" />}
         />
         <StatTile
           label="Focus area"
-          value={<span className="text-xl">{p.weakest[0]?.criterion ?? "—"}</span>}
+          value={<span className="text-xl">{p.weakest[0]?.criterion ?? "Not yet"}</span>}
           hint={p.weakest[0] ? `${p.weakest[0].average.toFixed(1)}/5 average` : "appears after reports"}
           icon={<Crosshair className="h-4 w-4" />}
         />

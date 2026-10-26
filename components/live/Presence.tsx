@@ -11,7 +11,7 @@ const LABELS: Record<string, string> = {
   interviewer: "Interviewer is speaking",
   candidate: "Listening to you",
   processing: "Thinking about your answer…",
-  waiting: "Your turn — take your time",
+  waiting: "Your turn, take your time",
   paused: "Paused",
   ending: "Wrapping up…",
   ended: "Interview finished",

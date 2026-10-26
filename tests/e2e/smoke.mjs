@@ -162,7 +162,7 @@ await step("seeded report renders with rubric and computed score", async () => {
   await page.getByText("63", { exact: true }).waitFor();
   await page.getByText("A stronger version of your answer").waitFor();
   await page.getByText("How this was scored").click();
-  await page.getByText(/calculated by IntervU — not chosen by the AI/).waitFor();
+  await page.getByText(/calculated by IntervU, not chosen by the AI/).waitFor();
   await page.screenshot({ path: OUT + "07-report.png", fullPage: true });
 });
 

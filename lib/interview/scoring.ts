@@ -8,7 +8,7 @@ export const MIN_RATINGS_FOR_SCORE = 6;
 
 /**
  * Turns the evaluator's per-question criterion ratings into report numbers.
- * The overall score is computed here, deterministically, from the 1–5 ratings —
+ * The overall score is computed here, deterministically, from the 1–5 ratings;
  * the model is never asked to invent a headline number.
  */
 export function buildReport(output: EvaluationOutput, rubricId: RubricId, now = Date.now()): InterviewReport {

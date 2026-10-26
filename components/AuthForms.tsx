@@ -20,8 +20,7 @@ function AuthShell({ title, subtitle, children }: { title: string; subtitle: str
     <div className="grid min-h-dvh lg:grid-cols-[1fr_1.1fr]">
       {/* Brand panel (desktop) */}
       <aside className="relative hidden overflow-hidden bg-ink p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div aria-hidden className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-indigo/40 blur-3xl" />
-        <div aria-hidden className="absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-marigold/20 blur-3xl" />
+        <div aria-hidden className="absolute inset-y-0 right-0 w-1.5 bg-marigold" />
         <Logo className="relative text-white" />
         <div className="relative max-w-md space-y-6">
           <p className="font-display text-3xl font-extrabold leading-tight">Practise out loud. Get feedback on what you actually said.</p>

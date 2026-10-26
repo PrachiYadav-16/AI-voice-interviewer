@@ -7,7 +7,7 @@ const SECTIONS: { h: string; p: string[] }[] = [
   {
     h: "What is stored, and where",
     p: [
-      "Your account (name, email and a salted hash of your password — never the password itself), your saved resume text, interview transcripts and reports are stored in this browser's local storage.",
+      "Your account (name, email and a salted hash of your password, never the password itself), your saved resume text, interview transcripts and reports are stored in this browser's local storage.",
       "They are not sent to or stored on IntervU's servers, they don't sync between devices, and clearing your browser's site data deletes them.",
       "Device accounts keep profiles separate on a shared computer. Anyone with access to your browser profile could still read local storage, so use your own device for sensitive material.",
     ],

@@ -13,13 +13,7 @@ export function Logo({ className }: { className?: string }) {
   return (
     <Link href="/" className={cn("flex items-center gap-2.5 font-display text-xl font-extrabold tracking-tight", className)}>
       <svg viewBox="0 0 28 28" className="h-8 w-8" aria-hidden>
-        <defs>
-          <linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#5563ea" />
-            <stop offset="1" stopColor="#2c38b0" />
-          </linearGradient>
-        </defs>
-        <rect width="28" height="28" rx="8" fill="url(#logo-g)" />
+        <rect width="28" height="28" rx="8" fill="var(--color-indigo)" />
         <path d="M9 8v12M14 11v6M19 8v12" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" />
         <circle cx="23.5" cy="4.5" r="3" fill="var(--color-marigold)" />
       </svg>
@@ -48,14 +42,14 @@ export function AppHeader() {
     <header className="sticky top-0 z-30 border-b border-line bg-surface/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo />
-        <nav aria-label="Main" className="hidden items-center gap-1 rounded-full border border-line bg-paper/80 p-1 md:flex">
+        <nav aria-label="Main" className="hidden items-center gap-1 rounded-[10px] border border-line bg-paper/80 p-1 md:flex">
           {APP_NAV.map((n) => (
             <Link
               key={n.href}
               href={n.href}
               aria-current={pathname.startsWith(n.href) ? "page" : undefined}
               className={cn(
-                "rounded-full px-4 py-1.5 text-sm font-semibold text-muted transition-colors hover:text-ink",
+                "rounded-md px-4 py-1.5 text-sm font-semibold text-muted transition-colors hover:text-ink",
                 pathname.startsWith(n.href) && "bg-surface text-ink shadow-[var(--shadow-card)]",
               )}
             >
@@ -65,14 +59,14 @@ export function AppHeader() {
         </nav>
         <div className="hidden items-center gap-3 md:flex">
           {user && (
-            <Link href="/settings" className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-semibold hover:bg-paper">
+            <Link href="/settings" className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-3 text-sm font-semibold hover:bg-paper">
               <Avatar src={user.avatar} name={user.name} className="h-8 w-8" />
               <span className="max-w-[10rem] truncate">{user.name}</span>
             </Link>
           )}
           <button
             onClick={signOut}
-            className="grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-paper hover:text-ink"
+            className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-paper hover:text-ink"
             aria-label="Log out"
             title="Log out"
           >
@@ -113,13 +107,13 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo />
         <nav aria-label="Site" className="flex items-center gap-1 sm:gap-2">
-          <Link href="/#how" className="hidden rounded-full px-3 py-2 text-sm font-semibold text-muted hover:text-ink sm:block">
+          <Link href="/#how" className="hidden rounded-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink sm:block">
             How it works
           </Link>
-          <Link href="/#types" className="hidden rounded-full px-3 py-2 text-sm font-semibold text-muted hover:text-ink lg:block">
+          <Link href="/#types" className="hidden rounded-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink lg:block">
             Interview types
           </Link>
-          <Link href="/privacy" className="hidden rounded-full px-3 py-2 text-sm font-semibold text-muted hover:text-ink lg:block">
+          <Link href="/privacy" className="hidden rounded-md px-3 py-2 text-sm font-semibold text-muted hover:text-ink lg:block">
             Privacy
           </Link>
           {user ? (
@@ -128,7 +122,7 @@ export function SiteHeader() {
             </ButtonLink>
           ) : (
             <>
-              <Link href="/login" className="rounded-full px-3 py-2 text-sm font-semibold text-ink hover:bg-surface">
+              <Link href="/login" className="rounded-md px-3 py-2 text-sm font-semibold text-ink hover:bg-surface">
                 Log in
               </Link>
               <ButtonLink href="/signup" size="sm">

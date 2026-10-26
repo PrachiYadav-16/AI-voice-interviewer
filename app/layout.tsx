@@ -5,7 +5,7 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
-  title: { default: "IntervU — practise any interview out loud", template: "%s · IntervU" },
+  title: { default: "IntervU: practise any interview out loud", template: "%s · IntervU" },
   description:
     "Spoken mock interviews for government, campus and private-sector roles, with follow-up questions and feedback based on what you actually said.",
 };

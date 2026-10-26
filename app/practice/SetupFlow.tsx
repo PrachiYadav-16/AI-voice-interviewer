@@ -249,7 +249,7 @@ export function SetupFlow({ user }: { user: PublicUser }) {
                   {t.interviewAvailability && (
                     <span
                       className={cn(
-                        "mt-4 self-start rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                        "mt-4 self-start rounded-md px-2 py-0.5 text-xs font-semibold",
                         t.interviewAvailability === "yes" && "bg-sage-soft text-sage",
                         t.interviewAvailability === "some-posts" && "bg-indigo-soft text-indigo",
                         t.interviewAvailability === "rare" && "bg-marigold-soft text-[#7a4f00]",
@@ -489,7 +489,7 @@ export function SetupFlow({ user }: { user: PublicUser }) {
             <dl className="space-y-1.5 text-[0.95rem]">
               <div className="flex justify-between gap-3">
                 <dt className="text-muted">Role</dt>
-                <dd className="text-right font-bold">{config.roleTitle || "—"}</dd>
+                <dd className="text-right font-bold">{config.roleTitle || "Not set"}</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-muted">Format</dt>
