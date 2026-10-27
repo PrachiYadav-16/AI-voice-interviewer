@@ -1,5 +1,6 @@
 "use client";
 
+import { cloudEnabled } from "@/lib/supabase";
 import { useState } from "react";
 import { RequireAuth } from "@/components/AuthProvider";
 import { AppShell } from "@/components/Headers";
@@ -7,7 +8,7 @@ import { AvatarPicker } from "@/components/AvatarPicker";
 import { DocumentInput } from "@/components/DocumentInput";
 import { Button, Card, ConfirmDialog, Notice, PageTitle, TextField } from "@/components/ui";
 import { deleteAccount, updateUser, type PublicUser } from "@/lib/auth";
-import { listSessions, remove, KEYS, StorageFullError, updateProfile } from "@/lib/storage";
+import { deleteAllSessions, listSessions, StorageFullError, updateProfile } from "@/lib/storage";
 import { useProfile, useSessions } from "@/lib/hooks/useUserData";
 
 export default function SettingsPage() {
@@ -28,15 +29,17 @@ function Settings({ user }: { user: PublicUser }) {
   const [confirm, setConfirm] = useState<"history" | "account" | null>(null);
   const [draftResume, setDraftResume] = useState<{ text: string; name?: string } | null>(null);
 
-  const saveProfile = (e: React.FormEvent) => {
+  const [busy, setBusy] = useState(false);
+
+  const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim().length < 2) return setError("Enter a name of at least 2 characters.");
     try {
-      updateUser(user.id, { name: name.trim(), avatar });
+      await updateUser(user.id, { name: name.trim(), avatar });
       setError(undefined);
       setSaved("Profile saved.");
     } catch (err) {
-      setError(err instanceof StorageFullError ? err.message : "Couldn't save your profile.");
+      setError(err instanceof StorageFullError || err instanceof Error ? err.message : "Couldn't save your profile.");
     }
   };
 
@@ -86,7 +89,7 @@ function Settings({ user }: { user: PublicUser }) {
 
         <Card>
           <h2 className="mb-1 text-xl">Saved resume</h2>
-          <p className="mb-4 text-muted">Used to personalise interviews when you choose it. Only the text is kept, in this browser.</p>
+          <p className="mb-4 text-muted">Used to personalise interviews when you choose it. Only the text is kept{cloudEnabled ? ", in your account" : ", in this browser"}.</p>
           {profile.resumeText && !draftResume ? (
             <div className="space-y-3">
               <p>
@@ -135,7 +138,7 @@ function Settings({ user }: { user: PublicUser }) {
         <Card>
           <h2 className="mb-1 text-xl">Your data</h2>
           <p className="mb-4 text-muted">
-            {sessions.length} interview{sessions.length === 1 ? "" : "s"} stored in this browser. Audio recordings are not kept by IntervU.
+            {sessions.length} interview{sessions.length === 1 ? "" : "s"} {cloudEnabled ? "saved to your account" : "stored in this browser"}. Audio recordings are not kept by IntervU.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={exportData}>
@@ -162,11 +165,15 @@ function Settings({ user }: { user: PublicUser }) {
             </Button>
             <Button
               variant="danger"
-              onClick={() => {
+              loading={busy}
+              onClick={async () => {
                 if (confirm === "account") {
-                  deleteAccount(user.id);
+                  setBusy(true);
+                  const res = await deleteAccount(user.id);
+                  setBusy(false);
+                  if (!res.ok) setError(res.error);
                 } else {
-                  remove(KEYS.sessions(user.id));
+                  deleteAllSessions(user.id);
                   setSaved("All interviews deleted.");
                 }
                 setConfirm(null);

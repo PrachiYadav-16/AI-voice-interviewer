@@ -3,8 +3,9 @@
 import type { InterviewConfig, InterviewSession } from "@/lib/interview/types";
 
 /**
- * Local-first persistence. Everything is kept in this browser's localStorage and
- * scoped per account id. Swap this module for API calls to add cloud sync.
+ * Local-first persistence. The UI always reads from this browser's localStorage,
+ * scoped per account id. When Supabase is configured, a sync adapter (lib/cloud.ts)
+ * mirrors every change to the database and fills this cache on sign-in.
  */
 
 export const KEYS = {
@@ -38,10 +39,24 @@ export interface StoredUser {
 }
 
 export interface UserProfile {
+  avatar?: string;
   resumeText?: string;
   resumeFileName?: string;
   resumeNeedsReupload?: boolean;
   lastConfig?: Partial<InterviewConfig>;
+}
+
+/** Receives every local change so it can be mirrored to the cloud. */
+export interface SyncAdapter {
+  sessionSaved(session: InterviewSession): void;
+  sessionDeleted(userId: string, id: string): void;
+  sessionsCleared(userId: string): void;
+  profileSaved(userId: string, profile: UserProfile): void;
+}
+
+let adapter: SyncAdapter | null = null;
+export function setSyncAdapter(next: SyncAdapter | null): void {
+  adapter = next;
 }
 
 const listeners = new Set<() => void>();
@@ -100,7 +115,13 @@ export function getProfile(userId: string): UserProfile {
 export function updateProfile(userId: string, patch: Partial<UserProfile>): UserProfile {
   const next = { ...getProfile(userId), ...patch };
   write(KEYS.profile(userId), next);
+  adapter?.profileSaved(userId, next);
   return next;
+}
+
+/** Replaces the cached profile with the cloud copy. Does not sync back. */
+export function replaceProfile(userId: string, profile: UserProfile): void {
+  write(KEYS.profile(userId), profile);
 }
 
 // ───────────── Sessions ─────────────
@@ -118,10 +139,20 @@ export function getSession(userId: string, id: string): InterviewSession | undef
 export function saveSession(session: InterviewSession): void {
   const all = listSessions(session.userId).filter((s) => s.id !== session.id);
   // The live call needs the resume; afterwards it lives once in the profile, not in every session.
-  const slim: InterviewSession =
+  const base: InterviewSession =
     session.status === "in-progress" ? session : { ...session, config: { ...session.config, resumeText: "" } };
+  const slim: InterviewSession = { ...base, updatedAt: Date.now() };
   const next = [slim, ...all].slice(0, MAX_SESSIONS);
   write(KEYS.sessions(session.userId), next);
+  adapter?.sessionSaved(slim);
+}
+
+/** Replaces the cached sessions with a merged cloud copy. Does not sync back. */
+export function replaceSessions(userId: string, sessions: InterviewSession[]): void {
+  write(
+    KEYS.sessions(userId),
+    sessions.filter((s) => s.userId === userId).sort((a, b) => b.createdAt - a.createdAt).slice(0, MAX_SESSIONS),
+  );
 }
 
 export function deleteSession(userId: string, id: string): void {
@@ -129,10 +160,22 @@ export function deleteSession(userId: string, id: string): void {
     KEYS.sessions(userId),
     listSessions(userId).filter((s) => s.id !== id),
   );
+  adapter?.sessionDeleted(userId, id);
+}
+
+export function deleteAllSessions(userId: string): void {
+  remove(KEYS.sessions(userId));
+  adapter?.sessionsCleared(userId);
+}
+
+/** Removes this user's cached data from the browser only (cloud copy untouched). */
+export function clearLocalCache(userId: string): void {
+  remove(KEYS.sessions(userId));
+  remove(KEYS.profile(userId));
 }
 
 export function deleteAllUserData(userId: string): void {
-  remove(KEYS.sessions(userId));
+  deleteAllSessions(userId);
   remove(KEYS.profile(userId));
 }
 

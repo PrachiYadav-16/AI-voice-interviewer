@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch } from "@/lib/client/api";
+import { cloudEnabled } from "@/lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ArrowLeft, Clock, Info } from "lucide-react";
@@ -145,7 +147,7 @@ export function SetupFlow({ user }: { user: PublicUser }) {
     if (problems.length) return;
     setPlanState({ status: "loading" });
     try {
-      const res = await fetch("/api/plan", {
+      const res = await apiFetch("/api/plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ config: c }),
@@ -516,7 +518,7 @@ export function SetupFlow({ user }: { user: PublicUser }) {
             <label className="flex items-start gap-3 text-sm">
               <input type="checkbox" className="mt-0.5 h-4 w-4 accent-[var(--color-indigo)]" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
               <span>
-                I understand my voice is sent to the voice provider (Vapi) to run this interview, and the transcript is saved in this browser.
+                I understand my voice is sent to the voice provider (Vapi) to run this interview, and the transcript is saved {cloudEnabled ? "to my account" : "in this browser"}.
               </span>
             </label>
 

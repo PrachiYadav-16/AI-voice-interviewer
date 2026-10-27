@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/client/api";
 import { useRef, useState } from "react";
 import { FileText, Upload, X } from "lucide-react";
 import { Button, Notice, TextArea } from "./ui";
@@ -42,7 +43,7 @@ export function DocumentInput({
     try {
       const body = new FormData();
       body.append("file", file);
-      const res = await fetch("/api/parse-document", { method: "POST", body });
+      const res = await apiFetch("/api/parse-document", { method: "POST", body });
       const data = (await res.json().catch(() => ({}))) as { text?: string; truncated?: boolean; error?: string };
       if (!res.ok || !data.text) {
         setError(data.error || "We couldn't read that file. Try pasting the text instead.");

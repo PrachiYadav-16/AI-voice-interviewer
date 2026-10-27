@@ -1,5 +1,6 @@
 "use client";
 
+import { cloudEnabled } from "@/lib/supabase";
 import { useState } from "react";
 import { RequireAuth } from "@/components/AuthProvider";
 import { AppShell } from "@/components/Headers";
@@ -25,7 +26,7 @@ function History({ userId }: { userId: string }) {
     <>
       <PageTitle
         title="History"
-        description="Interviews saved in this browser. Open one to see its report and transcript, or delete it from there."
+        description={`Interviews ${cloudEnabled ? "saved to your account" : "saved in this browser"}. Open one to see its report and transcript, or delete it from there.`}
         actions={<ButtonLink href="/practice">New interview</ButtonLink>}
       />
       {sessions.length === 0 ? (

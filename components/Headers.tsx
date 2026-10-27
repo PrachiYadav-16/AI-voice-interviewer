@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { LogOut, Menu, X } from "lucide-react";
+import { CloudAlert, LogOut, Menu, X } from "lucide-react";
 import { logout } from "@/lib/auth";
-import { useAuth } from "./AuthProvider";
-import { Avatar, ButtonLink } from "./ui";
+import { useAuth, useSyncStatus } from "./AuthProvider";
+import { Avatar, ButtonLink, Notice } from "./ui";
 import { cn } from "@/lib/utils";
 
 export function Logo({ className }: { className?: string }) {
@@ -36,7 +36,7 @@ export function AppHeader() {
   const [open, setOpen] = useState(false);
 
   // RequireAuth sends the page home once the profile is cleared.
-  const signOut = () => logout();
+  const signOut = () => void logout();
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-surface/85 backdrop-blur-md">
@@ -64,6 +64,7 @@ export function AppHeader() {
               <span className="max-w-[10rem] truncate">{user.name}</span>
             </Link>
           )}
+          <SyncBadge />
           <button
             onClick={signOut}
             className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-paper hover:text-ink"
@@ -96,6 +97,17 @@ export function AppHeader() {
         </nav>
       )}
     </header>
+  );
+}
+
+/** Appears only when changes couldn't be saved to the account yet. */
+function SyncBadge() {
+  const { error } = useSyncStatus();
+  if (!error) return null;
+  return (
+    <span role="status" title={error} className="flex items-center gap-1.5 rounded-md bg-marigold-soft px-2 py-1 text-xs font-semibold text-[#7a4f00]">
+      <CloudAlert className="h-4 w-4" aria-hidden /> Not saved yet
+    </span>
   );
 }
 
@@ -155,10 +167,17 @@ export function SiteFooter() {
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const { loadError } = useAuth();
   return (
     <>
       <AppHeader />
       <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+        {loadError && (
+          <Notice tone="warning" title="Couldn't load your saved interviews" className="mb-6" role="alert">
+            {loadError} You can keep practising; new interviews are kept on this device and saved to your account once the connection works. Reload the
+            page to try again.
+          </Notice>
+        )}
         {children}
       </main>
     </>

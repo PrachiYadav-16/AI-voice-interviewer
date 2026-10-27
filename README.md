@@ -25,7 +25,7 @@ Spoken mock interviews for government and private-sector roles. You talk with an
 
 **Feedback.** After the call, the transcript is sent to `/api/evaluate`, which asks an OpenAI-compatible model to rate each answer 1–5 against the rubric for that interview type, with evidence from your words. IntervU computes the overall score itself as the average rating mapped to 0–100, and shows no overall score when fewer than three answers were rated. Feedback covers the words only: tone, pace, confidence and body language are not measured.
 
-**Data.** Accounts, transcripts, reports and resume text live in the browser's `localStorage`, scoped per account. The server stores nothing. See `/privacy` in the app.
+**Data.** With Supabase configured, accounts use Supabase Auth (email confirmation, email password reset) and interviews are stored in two tables protected by Row Level Security, so each user can only read their own rows (`supabase/schema.sql`). The app is local-first: pages read from a browser cache, and `lib/cloud.ts` mirrors every change to the database with debounced, retried writes, then fills the cache on sign-in. Without Supabase, everything stays in each browser's `localStorage`. See `/privacy` in the app.
 
 ## Setup
 
@@ -43,6 +43,8 @@ npm run dev                  # http://localhost:3000
 
 | Variable | Needed for | Where to get it |
 | --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Accounts and database | Supabase → Project Settings → API Keys (or the project home page) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Accounts and database | Same page → **Publishable key** (`sb_publishable_...`). Never use the secret / `service_role` key. |
 | `NEXT_PUBLIC_VAPI_PUBLIC_KEY` | Live interviews | [Vapi dashboard](https://dashboard.vapi.ai) → API Keys → **Public** key. Restrict it to your domains. Never use the private key here. |
 | `LLM_API_KEY` | Feedback reports, personalised question plans | An OpenAI API key, or a key for any OpenAI-compatible provider |
 | `LLM_BASE_URL` | Optional | Defaults to `https://api.openai.com/v1` |
@@ -53,6 +55,17 @@ npm run dev                  # http://localhost:3000
 Without `NEXT_PUBLIC_VAPI_PUBLIC_KEY` the app runs but interviews can't start (the UI says so). Without `LLM_API_KEY` interviews run and transcripts are saved, but reports and plans show a "not configured" message. Vapi usage is billed to the Vapi account, including the speech, model and voice providers it calls.
 
 Microphone access needs HTTPS in production (`localhost` is allowed in development).
+
+### Supabase setup (accounts and database)
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. **SQL Editor → New query**, paste the contents of `supabase/schema.sql`, and click **Run**. This creates the `profiles` and `sessions` tables, Row Level Security policies, and the `delete_my_account` function.
+3. **Authentication → URL Configuration**: set **Site URL** to your site (e.g. `http://localhost:3000` while developing) and add `http://localhost:3000/**` plus your deployed domain with `/**` to **Redirect URLs**. Confirmation and password-reset emails link back here.
+4. Copy the project URL and publishable key into `.env.local` and restart `npm run dev`.
+
+Supabase's built-in email sender is rate-limited and meant for testing. For real users, add your own SMTP provider under **Authentication → Emails → SMTP Settings**.
+
+With Supabase set, the AI routes (`/api/evaluate`, `/api/plan`, `/api/parse-document`) also require a signed-in user, which stops other people from spending your AI credits.
 
 ### Scripts
 
@@ -81,7 +94,9 @@ Any host that runs `next start` on Node 20.9+ also works.
 
 ## Known limitations
 
-- **Accounts are per browser.** They keep profiles separate on a shared device but are not server-side authentication, and data doesn't sync across devices. Adding cloud sync means replacing `lib/storage.ts` and `lib/auth.ts` with calls to a backend (for example Supabase or a Next.js API with a database).
+- **Without Supabase, accounts are per browser.** They keep profiles separate on a shared device but are not server-side authentication, and data doesn't sync across devices.
+- **Device accounts aren't migrated.** Interviews saved under a browser-only account don't move to a Supabase account automatically.
+- **Sync conflicts:** if the same interview is edited on two devices at once, the most recent save wins.
 - **Rate limiting is in-memory**, so on serverless hosts it applies per instance. Put a shared store or the host's firewall in front for strict limits.
 - **Current affairs.** No live news source is connected. The interviewer is told not to assert recent facts, and reports note that recent claims can't be verified.
 - **Progress counter is approximate.** "Question n of about N" counts interviewer turns that ask a question; follow-ups can make it run ahead.

@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/client/api";
 import type { InterviewReport, InterviewSession } from "@/lib/interview/types";
 import { getSession, saveSession } from "@/lib/storage";
 
@@ -15,7 +16,7 @@ export function generateReport(session: InterviewSession): Promise<GenerateResul
   const run = (async (): Promise<GenerateResult> => {
     let result: GenerateResult;
     try {
-      const res = await fetch("/api/evaluate", {
+      const res = await apiFetch("/api/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ config: { ...session.config, resumeText: "" }, transcript: session.transcript }),

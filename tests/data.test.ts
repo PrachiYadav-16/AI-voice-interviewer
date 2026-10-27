@@ -133,7 +133,7 @@ describe("password reset", () => {
     const wrong = await auth.resetPassword({ email: "p@x.io", name: "Someone Else", password: "newpassword", confirm: "newpassword" });
     expect(wrong.ok).toBe(false);
     const res = await auth.resetPassword({ email: "P@X.IO", name: "  prachi   yadav ", password: "newpassword", confirm: "newpassword" });
-    expect(res.ok && res.user.id).toBe(created.ok && created.user.id);
+    expect(res.ok === true && res.user.id).toBe(created.ok === true && created.user.id);
     expect(auth.currentUser()?.email).toBe("p@x.io");
     auth.logout();
     expect((await auth.login("p@x.io", "oldpassword")).ok).toBe(false);

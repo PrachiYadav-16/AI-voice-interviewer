@@ -5,6 +5,8 @@ import { buttonClass } from "@/components/buttonClass";
 import { CategoryIcon, TrackIcon } from "@/components/TrackIcon";
 import { CATEGORIES, tracksFor } from "@/lib/interview/catalog";
 
+const CLOUD = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+
 const FAQ = [
   {
     q: "Are these the real questions from UPSC or a particular company?",
@@ -124,7 +126,7 @@ export default function LandingPage() {
                 </a>
               </div>
               <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
-                {["Government and private-sector tracks", "No audio recordings kept", "Runs in your browser"].map((t) => (
+                {["Government and private-sector tracks", "No audio recordings kept", CLOUD ? "Your history on any device" : "Runs in your browser"].map((t) => (
                   <li key={t} className="flex items-center gap-1.5">
                     <Check className="h-4 w-4 text-sage" aria-hidden /> {t}
                   </li>
@@ -303,11 +305,13 @@ export default function LandingPage() {
           <div className="grid gap-8 overflow-hidden rounded-[24px] bg-ink p-8 text-white sm:p-12 md:grid-cols-[1fr_auto] md:items-center">
             <div className="space-y-3">
               <h2 className="flex items-center gap-3 text-2xl sm:text-3xl">
-                <ShieldCheck className="h-7 w-7 shrink-0 text-marigold" aria-hidden /> Your interviews stay with you
+                <ShieldCheck className="h-7 w-7 shrink-0 text-marigold" aria-hidden /> {CLOUD ? "Your interviews are private to you" : "Your interviews stay with you"}
               </h2>
               <p className="max-w-2xl text-white/75">
-                Transcripts, reports and your resume text are stored in your browser, not on our servers. Audio is processed live to run the interview and
-                isn&apos;t kept by IntervU. You can download or delete everything at any time.
+                {CLOUD
+                  ? "Transcripts, reports and your resume text are saved to your account so you can pick up on any device, and only you can see them. "
+                  : "Transcripts, reports and your resume text are stored in your browser, not on our servers. "}
+                Audio is processed live to run the interview and isn&apos;t kept by IntervU. You can download or delete everything at any time.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">

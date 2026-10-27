@@ -1,12 +1,19 @@
 "use client";
 
-import { KEYS, deleteAllUserData, newId, read, remove, updateProfile, write, type StoredUser } from "./storage";
+import type { User } from "@supabase/supabase-js";
+import { KEYS, clearLocalCache, deleteAllUserData, newId, read, remove, updateProfile, write, type StoredUser } from "./storage";
+import { cloudEnabled, getSupabase } from "./supabase";
+import { activeSync, stopCloudSync } from "./cloud";
 
 /**
- * Device-local accounts. Passwords are never stored: we keep a salted PBKDF2-SHA-256
- * hash. This separates profiles on a shared device; it is not a substitute for
- * server-side authentication, and the UI says so.
+ * Two account modes:
+ * - Cloud (Supabase configured): real accounts with email confirmation and email
+ *   password reset. Interviews sync to the database (see lib/cloud.ts).
+ * - Device (no Supabase): accounts live in this browser. Passwords are never stored,
+ *   only a salted PBKDF2-SHA-256 hash.
  */
+
+export { cloudEnabled };
 
 const ITERATIONS = 210_000;
 
@@ -18,7 +25,46 @@ export interface PublicUser {
   createdAt: number;
 }
 
-export type AuthResult = { ok: true; user: PublicUser } | { ok: false; error: string };
+export type AuthResult =
+  | { ok: true; user: PublicUser }
+  | { ok: false; error: string }
+  /** Cloud signup where Supabase requires the email to be confirmed first. */
+  | { ok: "confirm"; email: string };
+
+const PENDING_AVATAR = "intervu.pendingAvatar";
+const SHORT_AVATAR = 600;
+
+export function fromSupabaseUser(u: User): PublicUser {
+  const meta = (u.user_metadata ?? {}) as { name?: string; avatar?: string };
+  return {
+    id: u.id,
+    email: u.email ?? "",
+    name: meta.name?.trim() || (u.email ?? "You").split("@")[0],
+    avatar: meta.avatar,
+    createdAt: Date.parse(u.created_at) || Date.now(),
+  };
+}
+
+/** Uploaded avatars are too large for auth metadata; they're applied to the profile after first sign-in. */
+export function applyPendingAvatar(userId: string): void {
+  const pending = read<string | null>(PENDING_AVATAR, null);
+  if (!pending) return;
+  updateProfile(userId, { avatar: pending });
+  remove(PENDING_AVATAR);
+}
+
+function friendlyAuthError(message: string | undefined): string {
+  const m = (message ?? "").toLowerCase();
+  if (m.includes("invalid login")) return "That email and password don't match an account.";
+  if (m.includes("email not confirmed")) return "Confirm your email first. Check your inbox for the link we sent, then log in.";
+  if (m.includes("already registered") || m.includes("already been registered")) return "An account with this email already exists. Log in instead.";
+  if (m.includes("rate limit") || m.includes("too many")) return "Too many attempts. Wait a minute and try again.";
+  if (m.includes("password") && m.includes("least")) return "Use a stronger password (at least 8 characters).";
+  if (m.includes("fetch") || m.includes("network")) return "Couldn't reach the server. Check your internet connection and try again.";
+  return "Something went wrong. Try again in a moment.";
+}
+
+const origin = () => (typeof window === "undefined" ? "" : window.location.origin);
 
 function toHex(buf: ArrayBuffer): string {
   return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
@@ -58,6 +104,24 @@ export function validateSignup(input: { name: string; email: string; password: s
 }
 
 export async function signup(input: { name: string; email: string; password: string; avatar?: string }): Promise<AuthResult> {
+  const sb = getSupabase();
+  if (sb) {
+    const shortAvatar = input.avatar && input.avatar.length <= SHORT_AVATAR ? input.avatar : undefined;
+    if (input.avatar && !shortAvatar) write(PENDING_AVATAR, input.avatar);
+    const { data, error } = await sb.auth.signUp({
+      email: normaliseEmail(input.email),
+      password: input.password,
+      options: { data: { name: input.name.trim(), avatar: shortAvatar }, emailRedirectTo: `${origin()}/dashboard` },
+    });
+    if (error) return { ok: false, error: friendlyAuthError(error.message) };
+    // Supabase hides existing accounts by returning a user with no identities.
+    if (data.user && data.user.identities?.length === 0) {
+      return { ok: false, error: "An account with this email already exists. Log in instead." };
+    }
+    if (!data.session) return { ok: "confirm", email: normaliseEmail(input.email) };
+    return { ok: true, user: fromSupabaseUser(data.user!) };
+  }
+
   await migrateLegacy();
   const users = read<StoredUser[]>(KEYS.users, []);
   const email = normaliseEmail(input.email);
@@ -80,6 +144,13 @@ export async function signup(input: { name: string; email: string; password: str
 }
 
 export async function login(emailInput: string, password: string): Promise<AuthResult> {
+  const sb = getSupabase();
+  if (sb) {
+    const { data, error } = await sb.auth.signInWithPassword({ email: normaliseEmail(emailInput), password });
+    if (error || !data.user) return { ok: false, error: friendlyAuthError(error?.message) };
+    return { ok: true, user: fromSupabaseUser(data.user) };
+  }
+
   await migrateLegacy();
   const users = read<StoredUser[]>(KEYS.users, []);
   const user = users.find((u) => u.email === normaliseEmail(emailInput));
@@ -117,10 +188,46 @@ export async function resetPassword(input: { email: string; name: string; passwo
   return { ok: true, user: toPublic(user) };
 }
 
+/** Cloud mode: emails a password reset link that opens /reset-password. */
+export async function requestPasswordReset(email: string): Promise<{ ok: boolean; error?: string }> {
+  const sb = getSupabase();
+  if (!sb) return { ok: false, error: "Password reset by email isn't available on this site." };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return { ok: false, error: "Enter a valid email address." };
+  const { error } = await sb.auth.resetPasswordForEmail(normaliseEmail(email), { redirectTo: `${origin()}/reset-password` });
+  // Same answer whether or not the account exists, so emails can't be probed.
+  if (error && !error.message.toLowerCase().includes("not found")) return { ok: false, error: friendlyAuthError(error.message) };
+  return { ok: true };
+}
+
+/** Cloud mode: sets a new password for the user signed in through a reset link. */
+export async function setNewPassword(password: string, confirm: string): Promise<{ ok: boolean; error?: string }> {
+  if (password.length < 8) return { ok: false, error: "Use a password of at least 8 characters." };
+  if (password !== confirm) return { ok: false, error: "The two passwords don't match." };
+  const sb = getSupabase();
+  if (!sb) return { ok: false, error: "Password reset isn't available on this site." };
+  const { error } = await sb.auth.updateUser({ password });
+  if (error) {
+    const m = error.message.toLowerCase();
+    if (m.includes("session") || m.includes("jwt")) return { ok: false, error: "This reset link has expired. Request a new one." };
+    if (m.includes("different from the old")) return { ok: false, error: "Choose a password different from your current one." };
+    return { ok: false, error: friendlyAuthError(error.message) };
+  }
+  return { ok: true };
+}
+
 let signedOutOnPurpose = false;
 
-export function logout(): void {
+export async function logout(): Promise<void> {
   signedOutOnPurpose = true;
+  const sb = getSupabase();
+  if (sb) {
+    const { data } = await sb.auth.getUser();
+    await stopCloudSync();
+    await sb.auth.signOut();
+    // Don't leave this person's interviews in a shared browser.
+    if (data.user) clearLocalCache(data.user.id);
+    return;
+  }
   remove(KEYS.current);
 }
 
@@ -138,7 +245,16 @@ export function currentUser(): PublicUser | null {
   return user ? toPublic(user) : null;
 }
 
-export function updateUser(userId: string, patch: Partial<Pick<StoredUser, "name" | "avatar">>): void {
+export async function updateUser(userId: string, patch: Partial<Pick<StoredUser, "name" | "avatar">>): Promise<void> {
+  const sb = getSupabase();
+  if (sb) {
+    if (patch.avatar !== undefined) updateProfile(userId, { avatar: patch.avatar });
+    if (patch.name !== undefined) {
+      const { error } = await sb.auth.updateUser({ data: { name: patch.name, avatar: null } });
+      if (error) throw new Error(friendlyAuthError(error.message));
+    }
+    return;
+  }
   const users = read<StoredUser[]>(KEYS.users, []);
   write(
     KEYS.users,
@@ -146,7 +262,18 @@ export function updateUser(userId: string, patch: Partial<Pick<StoredUser, "name
   );
 }
 
-export function deleteAccount(userId: string): void {
+export async function deleteAccount(userId: string): Promise<{ ok: boolean; error?: string }> {
+  const sb = getSupabase();
+  if (sb) {
+    const { error } = await sb.rpc("delete_my_account");
+    if (error) return { ok: false, error: "Couldn't delete your account. Try again, or check your connection." };
+    activeSync()?.stop();
+    await stopCloudSync();
+    signedOutOnPurpose = true;
+    clearLocalCache(userId);
+    await sb.auth.signOut();
+    return { ok: true };
+  }
   deleteAllUserData(userId);
   write(
     KEYS.users,
@@ -154,6 +281,7 @@ export function deleteAccount(userId: string): void {
   );
   signedOutOnPurpose = true;
   remove(KEYS.current);
+  return { ok: true };
 }
 
 interface LegacyUser {
