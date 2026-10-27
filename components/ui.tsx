@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { forwardRef, useEffect, useId, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Eye, EyeOff, Info, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { buttonClass, type Size, type Variant } from "./buttonClass";
@@ -60,18 +60,39 @@ export function TextField({
   ...rest
 }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string; error?: string }) {
   const id = useId();
+  const [shown, setShown] = useState(false);
+  const isPassword = rest.type === "password";
+  const input = (
+    <input
+      id={id}
+      className={cn(inputClass, isPassword && "pr-11")}
+      aria-invalid={error ? true : undefined}
+      aria-describedby={hint || error ? `${id}-d` : undefined}
+      {...rest}
+      type={isPassword && shown ? "text" : rest.type}
+    />
+  );
   return (
     <div className={cn("space-y-1.5", className)}>
       <label htmlFor={id} className="block text-sm font-semibold text-ink/90">
         {label}
       </label>
-      <input
-        id={id}
-        className={inputClass}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={hint || error ? `${id}-d` : undefined}
-        {...rest}
-      />
+      {isPassword ? (
+        <div className="relative">
+          {input}
+          <button
+            type="button"
+            onClick={() => setShown((v) => !v)}
+            aria-label={shown ? "Hide password" : "Show password"}
+            aria-pressed={shown}
+            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-indigo"
+          >
+            {shown ? <EyeOff className="size-[18px]" aria-hidden /> : <Eye className="size-[18px]" aria-hidden />}
+          </button>
+        </div>
+      ) : (
+        input
+      )}
       {(hint || error) && (
         <p id={`${id}-d`} className={cn("text-sm", error ? "text-brick" : "text-muted")}>
           {error || hint}
