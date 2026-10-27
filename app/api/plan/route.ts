@@ -9,7 +9,7 @@ export const maxDuration = 60;
 
 /** Builds a personalised question plan from the resume and/or job description. */
 export async function POST(req: NextRequest) {
-  const blocked = guard(req, "plan", 30);
+  const blocked = await guard(req, "plan", 30);
   if (blocked) return blocked;
 
   let body: unknown;

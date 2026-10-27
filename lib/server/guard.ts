@@ -43,10 +43,46 @@ export function jsonError(status: number, error: string, extra?: Record<string, 
   return NextResponse.json({ error, ...extra }, { status, headers });
 }
 
+// ───────────── Account check (only when Supabase is configured) ─────────────
+
+const verified = new Map<string, { userId: string; until: number }>();
+
+export function authRequired(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+}
+
+/** Verifies the Supabase access token sent by the browser. Returns the user id, or null. */
+export async function verifyUser(req: NextRequest, now = Date.now()): Promise<string | null> {
+  const token = req.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
+  if (!token || token.length > 4096) return null;
+  const hit = verified.get(token);
+  if (hit && hit.until > now) return hit.userId;
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL!.replace(/\/$/, "")}/auth/v1/user`, {
+      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const user = (await res.json()) as { id?: string };
+    if (!user.id) return null;
+    verified.set(token, { userId: user.id, until: now + 60_000 });
+    if (verified.size > 2000) for (const [k, v] of verified) if (v.until <= now) verified.delete(k);
+    return user.id;
+  } catch {
+    return null;
+  }
+}
+
 /** Common checks for every AI route. Returns a response to send, or null to continue. */
-export function guard(req: NextRequest, name: string, limit: number, windowMs = 60 * 60 * 1000) {
+export async function guard(req: NextRequest, name: string, limit: number, windowMs = 60 * 60 * 1000) {
   if (!sameOrigin(req)) return jsonError(403, "Requests must come from the IntervU site.");
-  const rl = rateLimit(`${name}:${clientIp(req)}`, limit, windowMs);
+  let who = clientIp(req);
+  if (authRequired()) {
+    const userId = await verifyUser(req);
+    if (!userId) return jsonError(401, "Your session has expired. Log in again and retry.", { code: "auth" });
+    who = `u:${userId}`;
+  }
+  const rl = rateLimit(`${name}:${who}`, limit, windowMs);
   if (!rl.ok) {
     return jsonError(429, "Too many requests. Please wait before trying again.", { retryAfter: rl.retryAfter }, { "Retry-After": String(rl.retryAfter) });
   }

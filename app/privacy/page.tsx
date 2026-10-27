@@ -3,15 +3,26 @@ import { SiteFooter, SiteHeader } from "@/components/Headers";
 
 export const metadata: Metadata = { title: "Privacy" };
 
+const CLOUD = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+
 const SECTIONS: { h: string; p: string[] }[] = [
-  {
-    h: "What is stored, and where",
-    p: [
-      "Your account (name, email and a salted hash of your password, never the password itself), your saved resume text, interview transcripts and reports are stored in this browser's local storage.",
-      "They are not sent to or stored on IntervU's servers, they don't sync between devices, and clearing your browser's site data deletes them.",
-      "Device accounts keep profiles separate on a shared computer. Anyone with access to your browser profile could still read local storage, so use your own device for sensitive material.",
-    ],
-  },
+  CLOUD
+    ? {
+        h: "What is stored, and where",
+        p: [
+          "Your account (name, email and password) is managed by Supabase, our database provider. Passwords are stored only as secure hashes by Supabase.",
+          "Your saved resume text, interview settings, transcripts and reports are stored in IntervU's Supabase database so you can use them on any device. Database rules ensure each account can read only its own interviews.",
+          "A copy is also kept in your browser so pages load quickly and nothing is lost if your connection drops. It is removed when you log out.",
+        ],
+      }
+    : {
+        h: "What is stored, and where",
+        p: [
+          "Your account (name, email and a salted hash of your password, never the password itself), your saved resume text, interview transcripts and reports are stored in this browser's local storage.",
+          "They are not sent to or stored on IntervU's servers, they don't sync between devices, and clearing your browser's site data deletes them.",
+          "Device accounts keep profiles separate on a shared computer. Anyone with access to your browser profile could still read local storage, so use your own device for sensitive material.",
+        ],
+      },
   {
     h: "What is sent to other services",
     p: [
@@ -23,12 +34,12 @@ const SECTIONS: { h: string; p: string[] }[] = [
   },
   {
     h: "Recordings",
-    p: ["IntervU does not request or store audio recordings of your interviews. Only the text transcript is kept, in your browser."],
+    p: [`IntervU does not request or store audio recordings of your interviews. Only the text transcript is kept${CLOUD ? ", in your account" : ", in your browser"}.`],
   },
   {
     h: "Your controls",
     p: [
-      "Delete any single interview from its report page. Delete all interviews, download your data, or delete your account from Settings.",
+      `Delete any single interview from its report page. Delete all interviews, download your data, or delete your account from Settings${CLOUD ? "; deleting your account removes your interviews from the database too" : ""}.`,
       "You can deny microphone access at any time from your browser's site settings; interviews can't run without it.",
     ],
   },

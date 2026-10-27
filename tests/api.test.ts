@@ -150,3 +150,41 @@ describe("abuse protection", () => {
     expect(sameOrigin(mk("https://other.site"))).toBe(false);
   });
 });
+
+describe("signed-in check when accounts are enabled", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  const enableCloud = () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test");
+    vi.stubEnv("LLM_API_KEY", "k");
+  };
+
+  it("rejects AI requests without a valid session", async () => {
+    enableCloud();
+    const fetchMock = vi.fn(async () => new Response("{}", { status: 401 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await evaluate(req("/api/evaluate", { config: makeConfig(), transcript }, { authorization: "Bearer bad-token" }));
+    expect(res.status).toBe(401);
+    expect((await res.json()).code).toBe("auth");
+    const noHeader = await evaluate(req("/api/evaluate", { config: makeConfig(), transcript }));
+    expect(noHeader.status).toBe(401);
+  });
+
+  it("accepts a verified user and checks the token with Supabase", async () => {
+    enableCloud();
+    const fetchMock = vi.fn(async (url: string | URL | Request) => {
+      if (String(url).includes("/auth/v1/user")) return new Response(JSON.stringify({ id: "user-1" }), { status: 200 });
+      return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(makeOutput([[4], [4], [4]])) } }] }), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await evaluate(req("/api/evaluate", { config: makeConfig(), transcript }, { authorization: "Bearer good-token-1" }));
+    expect(res.status).toBe(200);
+    const authCall = fetchMock.mock.calls.find(([u]) => String(u).includes("/auth/v1/user")) as unknown as [string, RequestInit];
+    expect(authCall[0]).toBe("https://example.supabase.co/auth/v1/user");
+    expect(new Headers(authCall[1].headers).get("Authorization")).toBe("Bearer good-token-1");
+  });
+});

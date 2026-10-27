@@ -117,6 +117,8 @@ export interface InterviewSession {
   transcript: TranscriptTurn[];
   report?: InterviewReport;
   reportError?: string;
+  /** ms since epoch of the last local change; used to merge with the cloud copy. */
+  updatedAt?: number;
 }
 
 /** Per-criterion rating returned by the evaluator. null = could not assess from the transcript. */

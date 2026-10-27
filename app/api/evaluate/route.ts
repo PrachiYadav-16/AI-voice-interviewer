@@ -18,7 +18,7 @@ const BodySchema = z.object({
 
 /** Generates a rubric-based report from the actual transcript. Nothing is stored server-side. */
 export async function POST(req: NextRequest) {
-  const blocked = guard(req, "evaluate", 20);
+  const blocked = await guard(req, "evaluate", 20);
   if (blocked) return blocked;
 
   let body: unknown;

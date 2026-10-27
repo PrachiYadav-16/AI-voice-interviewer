@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 /** Extracts plain text from an uploaded resume or job posting. Files are processed in memory and not stored. */
 export async function POST(req: NextRequest) {
-  const blocked = guard(req, "parse", 30);
+  const blocked = await guard(req, "parse", 30);
   if (blocked) return blocked;
 
   const len = Number(req.headers.get("content-length") || 0);
