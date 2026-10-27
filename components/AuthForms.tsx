@@ -310,7 +310,11 @@ export function NewPasswordForm() {
   }
   if (user === null) {
     return (
-      <AuthShell title="This link has expired" subtitle="Reset links work once and only for a limited time.">
+      <AuthShell title="This reset link didn't work" subtitle="Reset links work once, for a limited time, and only in the browser where you asked for them.">
+        <ul className="mb-5 list-disc space-y-1.5 pl-5 text-[0.95rem] text-muted">
+          <li>Open the link in the same browser you used to request it, not in a phone mail app or another browser.</li>
+          <li>If you asked more than once, only the newest email works.</li>
+        </ul>
         <Link href="/forgot-password" className="font-semibold text-indigo hover:underline">
           Request a new reset link
         </Link>
